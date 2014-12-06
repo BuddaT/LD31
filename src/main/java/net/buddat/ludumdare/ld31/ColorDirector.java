@@ -12,6 +12,8 @@ public class ColorDirector {
 	private static final Map<Integer, Color> PRIMARY_COLOR_MAP;
 	private static final Map<Integer, Color> SECONDARY_COLOR_MAP;
 	
+	private static final Color BACKGROUND_COLOR = Color.black;
+
 	private static int currentColor = 0;
 
 	private static Random colorRandom;
@@ -85,5 +87,13 @@ public class ColorDirector {
 
 	public static Color getSecondary(int index) {
 		return SECONDARY_COLOR_MAP.get(index);
+	}
+
+	public static Color getAltSecondary() {
+		return getBackgroundColor();
+	}
+
+	public static Color getBackgroundColor() {
+		return BACKGROUND_COLOR;
 	}
 }

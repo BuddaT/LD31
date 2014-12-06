@@ -23,14 +23,25 @@ public class Level {
 
 	private Color collisionColor = ColorDirector.getCurrentPrimary();
 	private Color secondaryColor = ColorDirector.getCurrentSecondary();
+	private final Color altSecondaryColor = ColorDirector.getAltSecondary();
 
-	public Level(int levelNum) {
+	private int altBeat = 0;
+	private final int beatsPerChange;
+
+	public Level(int levelNum, int beatsPerChange) {
 		this.levelNum = levelNum;
+		this.beatsPerChange = beatsPerChange;
 	}
 	
-	public void update(int delta) {
-		collisionColor = ColorDirector.getRandomPrimary();
-		secondaryColor = ColorDirector.getCurrentSecondary();
+	public void update(int delta, boolean beat) {
+		if (beat) {
+			altBeat++;
+
+			if (altBeat % beatsPerChange == 0) {
+				collisionColor = ColorDirector.getRandomPrimary();
+				secondaryColor = ColorDirector.getCurrentSecondary();
+			}
+		}
 	}
 
 	public void init() {
@@ -65,6 +76,9 @@ public class Level {
 	}
 
 	public void render(GameContainer gc, Graphics g, int playerX) {
+		g.setColor(ColorDirector.getBackgroundColor());
+		g.fillRect(0, 0, Constants.GAME_WIDTH, Constants.GAME_HEIGHT);
+
 		Point temp = new Point(0, 0);
 
 		/*
@@ -144,12 +158,13 @@ public class Level {
 		}
 	}
 
+	Color glowColor = new Color(0, 0, 0);
 	private void drawTile(Graphics g, int x, int y, int width, int height) {
 		g.setColor(collisionColor);
 		g.fillRect(x, y, width, height);
 
 		// TODO: Replace with glow in sync with beat
-		g.setColor(secondaryColor);
+		g.setColor((altBeat % 2 == 0 ? altSecondaryColor : secondaryColor));
 		g.drawRect(x, y, width, height);
 	}
 

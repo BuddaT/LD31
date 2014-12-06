@@ -16,7 +16,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	private MusicDirector music;
 	private Controller controller;
-	private BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
+	private final BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
 	private double timeToNextBeat = 0;
 
 	private Level l0;
@@ -34,7 +34,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		l0 = new Level(0);
+		l0 = new Level(0, 8);
 		l0.init();
 
 		music = new MusicDirector(TITLE_TRACK, this);
@@ -48,7 +48,9 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		if (sinceLast > 1000 * 60 / music.getBpm()) {
 			playerX++;
 			sinceLast = 0;
-			l0.update(delta);
+			l0.update(delta, true);
+		} else {
+			l0.update(delta, false);
 		}
 
 		controller.handleInput(gc.getInput());

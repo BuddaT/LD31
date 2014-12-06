@@ -1,6 +1,5 @@
 package net.buddat.ludumdare.ld31;
 
-import org.newdawn.slick.Music;
 
 /**
  * Calculates beats
@@ -8,7 +7,7 @@ import org.newdawn.slick.Music;
 public final class BeatCalculator {
 	private final double tolerance;
 	private final double SECONDS_PER_MINUTE = 60.0;
-	private static final double BEAT_OFFSET = 0.05;
+	private static final double BEAT_OFFSET = 0.15;
 
 	public BeatCalculator(double tolerance) {
 		this.tolerance = tolerance;
@@ -48,6 +47,6 @@ public final class BeatCalculator {
 	}
 
 	public double calcSecondsPerBeat(int bpm) {
-		return SECONDS_PER_MINUTE / (double) bpm;
+		return SECONDS_PER_MINUTE / bpm;
 	}
 }
