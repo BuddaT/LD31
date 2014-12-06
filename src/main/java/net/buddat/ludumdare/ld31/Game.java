@@ -40,7 +40,7 @@ public class Game extends BasicGame {
 	@Override
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
-		if (sinceLast > 1000 * 60 / 120) {
+		if (sinceLast > 1000 * 60 / 128) {
 			playerX++;
 			sinceLast = 0;
 		}
