@@ -245,4 +245,8 @@ public class Level {
 		}
 	}
 
+	public boolean isCollidable(int x, int y) {
+		Tile tile = tileMap.get(new Point(x, y));
+		return tile != null && tile.isCollidable();
+	}
 }
