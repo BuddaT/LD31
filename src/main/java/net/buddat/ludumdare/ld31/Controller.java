@@ -1,8 +1,9 @@
 package net.buddat.ludumdare.ld31;
 
+import net.buddat.ludumdare.ld31.music.BeatCalculator;
+import net.buddat.ludumdare.ld31.music.MusicDirector;
 import net.buddat.ludumdare.ld31.world.Player;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.KeyListener;
 
 /**
  * Controller input handler, detects key presses and directs actions accordingly.

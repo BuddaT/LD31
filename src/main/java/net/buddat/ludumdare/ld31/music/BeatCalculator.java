@@ -1,4 +1,4 @@
-package net.buddat.ludumdare.ld31;
+package net.buddat.ludumdare.ld31.music;
 
 
 /**

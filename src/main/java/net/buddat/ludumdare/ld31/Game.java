@@ -1,6 +1,9 @@
 package net.buddat.ludumdare.ld31;
 
 import net.buddat.ludumdare.ld31.constants.Constants;
+import net.buddat.ludumdare.ld31.music.BeatCalculator;
+import net.buddat.ludumdare.ld31.music.MusicDirector;
+import net.buddat.ludumdare.ld31.music.MusicDirectorListener;
 import net.buddat.ludumdare.ld31.world.Level;
 
 import net.buddat.ludumdare.ld31.world.Player;

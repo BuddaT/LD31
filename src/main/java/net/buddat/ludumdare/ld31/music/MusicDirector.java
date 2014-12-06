@@ -1,4 +1,4 @@
-package net.buddat.ludumdare.ld31;
+package net.buddat.ludumdare.ld31.music;
 
 import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
