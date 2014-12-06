@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.HashMap;
 
 import net.buddat.ludumdare.ld31.ColorDirector;
+import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
 import net.buddat.ludumdare.ld31.constants.Constants;
 
 import org.newdawn.slick.Color;
@@ -21,8 +22,10 @@ public class Level {
 
 	private HashMap<Point, Tile> tileMap;
 
-	private Color collisionColor = ColorDirector.getCurrentPrimary();
-	private Color secondaryColor = ColorDirector.getCurrentSecondary();
+	private Color collisionColor = ColorDirector
+			.getCurrentPrimary(ColorType.WALL);
+	private Color secondaryCollisionColor = ColorDirector
+			.getCurrentSecondary(ColorType.WALL);
 	private final Color altSecondaryColor = ColorDirector.getAltSecondary();
 
 	private int altBeat = 0;
@@ -38,8 +41,9 @@ public class Level {
 			altBeat++;
 
 			if (altBeat % beatsPerChange == 0) {
-				collisionColor = ColorDirector.getRandomPrimary();
-				secondaryColor = ColorDirector.getCurrentSecondary();
+				collisionColor = ColorDirector.getRandomPrimary(ColorType.WALL);
+				secondaryCollisionColor = ColorDirector
+						.getCurrentSecondary(ColorType.WALL);
 			}
 		}
 	}
@@ -164,7 +168,8 @@ public class Level {
 		g.fillRect(x, y, width, height);
 
 		// TODO: Replace with glow in sync with beat
-		g.setColor((altBeat % 2 == 0 ? altSecondaryColor : secondaryColor));
+		g.setColor((altBeat % 2 == 0 ? altSecondaryColor
+				: secondaryCollisionColor));
 		g.drawRect(x, y, width, height);
 	}
 

@@ -13,8 +13,10 @@ public class ColorDirector {
 	private static final Map<Integer, Color> SECONDARY_COLOR_MAP;
 	
 	private static final Color BACKGROUND_COLOR = Color.black;
+	
+	public static enum ColorType { PLAYER, WALL, OBJECT, PROJECTILE };
 
-	private static int currentColor = 0;
+	private static int currentWallColor = 0, currentPlayerColor = 1;
 
 	private static Random colorRandom;
 
@@ -52,33 +54,33 @@ public class ColorDirector {
 		colorRandom = new Random(System.currentTimeMillis());
 	}
 
-	public static Color getRandomPrimary() {
-		int nextColor = currentColor;
-		while (nextColor == currentColor)
+	public static Color getRandomPrimary(ColorType c) {
+		int nextColor = getColor(c);
+		while (nextColor == getColor(c))
 			nextColor = colorRandom.nextInt(PRIMARY_COLOR_MAP.size());
 
-		currentColor = nextColor;
+		setColor(c, nextColor);
 
-		return getCurrentPrimary();
+		return getCurrentPrimary(c);
 	}
-
-	public static Color getNextPrimary() {
-		currentColor++;
-		Color c = getCurrentPrimary();
-		if (c == null) {
-			currentColor = 0;
-			c = getCurrentPrimary();
+	
+	public static Color getNextPrimary(ColorType c) {
+		setColor(c, getColor(c) + 1);
+		Color col = getCurrentPrimary(c);
+		if (col == null) {
+			setColor(c, 0);
+			col = getCurrentPrimary(c);
 		}
 		
-		return c;
+		return col;
 	}
 
-	public static Color getCurrentPrimary() {
-		return PRIMARY_COLOR_MAP.get(currentColor);
+	public static Color getCurrentPrimary(ColorType c) {
+		return PRIMARY_COLOR_MAP.get(getColor(c));
 	}
 
-	public static Color getCurrentSecondary() {
-		return SECONDARY_COLOR_MAP.get(currentColor);
+	public static Color getCurrentSecondary(ColorType c) {
+		return SECONDARY_COLOR_MAP.get(getColor(c));
 	}
 
 	public static Color getPrimary(int index) {
@@ -95,5 +97,39 @@ public class ColorDirector {
 
 	public static Color getBackgroundColor() {
 		return BACKGROUND_COLOR;
+	}
+	
+	private static void setColor(ColorType c, int newColor) {
+		switch (c) {
+			case PLAYER:
+				currentPlayerColor = newColor;
+				break;
+			case WALL:
+				currentWallColor = newColor;
+				break;
+			case OBJECT:
+				break;
+			case PROJECTILE:
+				break;
+			default:
+				break;
+		}
+	}
+	
+	private static int getColor(ColorType c) {
+		switch (c) {
+			case PLAYER:
+				return currentPlayerColor;
+			case WALL:
+				return currentWallColor;
+			case OBJECT:
+				break;
+			case PROJECTILE:
+				break;
+			default:
+				break;
+		}
+
+		return 0;
 	}
 }
