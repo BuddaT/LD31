@@ -1,6 +1,7 @@
 package net.buddat.ludumdare.ld31;
 
 import net.buddat.ludumdare.ld31.constants.Constants;
+import net.buddat.ludumdare.ld31.world.Level;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
@@ -10,27 +11,33 @@ import org.newdawn.slick.SlickException;
 
 public class Game extends BasicGame {
 
+	private Level l0;
+
 	public Game(String title) {
 		super(title);
 		// TODO Auto-generated constructor stub
 	}
 
+	int playerX = 2;
+	int sinceLast = 0;
 	@Override
-	public void render(GameContainer arg0, Graphics arg1) throws SlickException {
-		// TODO Auto-generated method stub
-
+	public void render(GameContainer gc, Graphics g) throws SlickException {
+		l0.render(gc, g, playerX);
 	}
 
 	@Override
-	public void init(GameContainer arg0) throws SlickException {
-		// TODO Auto-generated method stub
-
+	public void init(GameContainer gc) throws SlickException {
+		l0 = new Level(0);
+		l0.init();
 	}
 
 	@Override
-	public void update(GameContainer arg0, int arg1) throws SlickException {
-		// TODO Auto-generated method stub
-
+	public void update(GameContainer gc, int delta) throws SlickException {
+		sinceLast += delta;
+		if (sinceLast > 1000 * 60 / 120) {
+			playerX++;
+			sinceLast = 0;
+		}
 	}
 
 	public static void main(String[] args) {
