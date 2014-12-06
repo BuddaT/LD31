@@ -2,13 +2,12 @@ package net.buddat.ludumdare.ld31;
 
 import net.buddat.ludumdare.ld31.constants.Constants;
 
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.BasicGame;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.SlickException;
+import org.newdawn.slick.*;
 
 public class Game extends BasicGame {
+
+    MusicDirector music;
+    Controller controller;
 
 	public Game(String title) {
 		super(title);
@@ -16,20 +15,21 @@ public class Game extends BasicGame {
 	}
 
 	@Override
-	public void render(GameContainer arg0, Graphics arg1) throws SlickException {
+	public void render(GameContainer gc, Graphics arg1) throws SlickException {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
-	public void init(GameContainer arg0) throws SlickException {
+	public void init(GameContainer gc) throws SlickException {
 		// TODO Auto-generated method stub
-
+        music = new MusicDirector("chipshit_128.ogg");
+        controller = new Controller(music);
 	}
 
 	@Override
-	public void update(GameContainer arg0, int arg1) throws SlickException {
+	public void update(GameContainer gc, int arg1) throws SlickException {
 		// TODO Auto-generated method stub
+        controller.handleInput(gc.getInput());
 	}
 
 	public static void main(String[] args) {
