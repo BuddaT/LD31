@@ -15,6 +15,10 @@ import org.newdawn.slick.SlickException;
 
 public class Level {
 
+	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2);
+	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.525f;
+	private static final int VIEW_RANGE = 50;
+
 	private final int levelNum;
 	private int lvlWidth, lvlHeight;
 
@@ -76,27 +80,21 @@ public class Level {
 
 		for (int x = 0; x < lvlWidth; x++) {
 			for (int y = 0; y < lvlHeight; y++) {
-				Color pixelColor = collisionsLayer.getColor(x, y);
+				Color collisionPixelColor = collisionsLayer.getColor(x, y);
+				Color objectPixelColor = objectsLayer.getColor(x, y);
 
-				if (pixelColor.getAlpha() > 0) {
+				if (collisionPixelColor.getAlpha() > 0
+						|| objectPixelColor.getAlpha() > 0) {
 					Point p = new Point(x, y);
-					Tile t = new Tile(p, true);
-					tileMap.put(p, t);
-				}
-				
-				pixelColor = objectsLayer.getColor(x, y);
+					Tile t = new Tile(p);
 
-				if (pixelColor.getAlpha() > 0) {
-					if (pixelColor.getRed() == 255) {
-						Point p = new Point(x, y);
-						Tile t = tileMap.get(p);
-						if (t == null) {
-							t = new Tile(p, false);
-							tileMap.put(p, t);
-						}
+					if (collisionPixelColor.getAlpha() > 0)
+						t.setCollidable(true);
 
+					if (objectPixelColor.getAlpha() > 0)
 						t.setBeatLava(true);
-					}
+
+					tileMap.put(p, t);
 				}
 			}
 		}
@@ -104,15 +102,18 @@ public class Level {
 	}
 
 	public void render(GameContainer gc, Graphics g, int playerX) {
+		/*
+		 * Reset background
+		 */
 		g.setColor(ColorDirector.getBackgroundColor());
 		g.fillRect(0, 0, Constants.GAME_WIDTH, Constants.GAME_HEIGHT);
 
 		Point temp = new Point(0, 0);
 
 		/*
-		 * Draw tiles that don't have scaling - focused on the player.
+		 * Draw tiles with scaling - focused on the player.
 		 */
-		for (int x = playerX - lvlHeight + 1; x < playerX + lvlHeight; x++) {
+		for (int x = playerX - VIEW_RANGE; x < playerX + VIEW_RANGE; x++) {
 			for (int y = 0; y < lvlHeight; y++) {
 				temp.setLocation(x, y);
 
@@ -120,67 +121,10 @@ public class Level {
 				if (t == null)
 					continue;
 
-				drawTile(
-						t,
-						g,
-						(Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2)
-								- ((playerX - x) * Constants.TILE_WIDTH), y
-								* Constants.TILE_WIDTH,
-						Constants.TILE_WIDTH, Constants.TILE_WIDTH);
-			}
-		}
-
-		/*
-		 * Draw tiles with scaling on the left edge of the screen.
-		 */
-		{
-			int highX = (Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2)
-					- ((lvlHeight) * Constants.TILE_WIDTH);
-			int accOffset = -1;
-			int width = Constants.TILE_WIDTH + 2;
-			for (int x = playerX - lvlHeight; x > playerX - lvlHeight - 10; x--) {
-				width -= 2;
-				if (accOffset == -1)
-					accOffset++;
-				else
-					accOffset += width;
-
-				for (int y = 0; y < lvlHeight; y++) {
-					temp.setLocation(x, y);
-
-					Tile t = tileMap.get(temp);
-					if (t == null)
-						continue;
-
-					drawTile(t, g, highX - accOffset,
-							y * Constants.TILE_WIDTH,
-							width, Constants.TILE_WIDTH);
-				}
-			}
-		}
-
-		/*
-		 * Draw tiles with scaling on the right edge of the screen.
-		 */
-		{
-			int lowX = (Constants.GAME_WIDTH / 2 + Constants.TILE_WIDTH / 2)
-					+ ((lvlHeight - 1) * Constants.TILE_WIDTH);
-			int accOffset = 0;
-			int width = Constants.TILE_WIDTH;
-			for (int x = playerX + lvlHeight; x < playerX + lvlHeight + 10; x++) {
-				for (int y = 0; y < lvlHeight; y++) {
-					temp.setLocation(x, y);
-
-					Tile t = tileMap.get(temp);
-					if (t == null)
-						continue;
-
-					drawTile(t, g, lowX + accOffset, y
-							* Constants.TILE_WIDTH,
-							width, Constants.TILE_WIDTH);
-				}
-				accOffset += width;
-				width -= 2;
+				int xPos = getScaledX(playerX, x);
+				int width = getScaledX(playerX, x + 1) - xPos;
+				drawTile(t, g, xPos, y * Constants.TILE_WIDTH, width,
+						Constants.TILE_WIDTH);
 			}
 		}
 	}
@@ -199,7 +143,7 @@ public class Level {
 
 		if (t.isBeatLava()) {
 			g.setColor(new Color(0.5f - glowLavaTimer, 0f, 0f));
-			g.drawRect(x, y, width, height);
+			g.drawRect(x + 1, y + 1, width - 2, height - 2);
 		}
 	}
 
@@ -211,17 +155,28 @@ public class Level {
 		return (lvlHeight + 1) / 2;
 	}
 
+	public boolean isCollidable(int x, int y) {
+		Tile tile = tileMap.get(new Point(x, y));
+		return tile != null && tile.isCollidable();
+	}
+
+	public int getScaledX(int playerX, int tileX) {
+		int dist = Math.abs(playerX - tileX);
+		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2;
+		if (playerX < tileX)
+			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);
+		else
+			return CENTER_TILE_X - (int) (pos * Constants.TILE_WIDTH);
+	}
+
 	private class Tile {
 
 		private final Point position;
-		private boolean collidable;
+		private boolean collidable = false;
 		private boolean beatLava = false;
 
-		// private MapObject object;
-
-		Tile(Point p, boolean c) {
+		Tile(Point p) {
 			position = p;
-			collidable = c;
 		}
 
 		private Point getPosition() {
@@ -243,10 +198,5 @@ public class Level {
 		private void setBeatLava(boolean l) {
 			beatLava = l;
 		}
-	}
-
-	public boolean isCollidable(int x, int y) {
-		Tile tile = tileMap.get(new Point(x, y));
-		return tile != null && tile.isCollidable();
 	}
 }
