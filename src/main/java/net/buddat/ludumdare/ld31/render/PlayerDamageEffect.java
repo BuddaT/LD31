@@ -19,6 +19,7 @@ public class PlayerDamageEffect extends PlayerEffect {
 		super(x, y);
 	}
 
+	@Override
 	public void render(Graphics g) {
 		if (!hasExpired()) {
 			g.setColor(COLOUR);
@@ -27,6 +28,7 @@ public class PlayerDamageEffect extends PlayerEffect {
 		}
 	}
 
+	@Override
 	public int getDuration() {
 		return DURATION;
 	}

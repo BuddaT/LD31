@@ -1,11 +1,14 @@
 package net.buddat.ludumdare.ld31.world;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
 import net.buddat.ludumdare.ld31.constants.Constants;
+import net.buddat.ludumdare.ld31.render.TileEffect;
+import net.buddat.ludumdare.ld31.render.TileLavaGlowEffect;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -34,8 +37,10 @@ public class Level {
 
 	private int altBeat = 0;
 	private final int beatsPerChange;
+	private int bpm;
 
-	private float glowLavaTimer = 1.0f;
+	private boolean setupLavaGlow = false;
+	private ArrayList<TileEffect> tileEffectList;
 
 	public Level(int levelNum, int beatsPerChange) {
 		this.levelNum = levelNum;
@@ -43,18 +48,28 @@ public class Level {
 	}
 	
 	public void update(int delta, boolean beat, int bpm) {
+		this.bpm = bpm;
+
 		if (beat) {
 			altBeat++;
-			glowLavaTimer = 1.0f;
+			// if (altBeat % 2 == 0)
+				setupLavaGlow = true;
 
 			if (altBeat % beatsPerChange == 0) {
 				collisionColor = ColorDirector.getRandomPrimary(ColorType.WALL);
 				secondaryCollisionColor = ColorDirector
 						.getCurrentSecondary(ColorType.WALL);
 			}
-		} else {
-			glowLavaTimer -= 0.017f;
 		}
+
+		ArrayList<TileEffect> toRemove = new ArrayList<TileEffect>();
+		for (TileEffect t : tileEffectList) {
+			t.update(delta);
+			if (t.hasExpired())
+				toRemove.add(t);
+		}
+
+		tileEffectList.removeAll(toRemove);
 	}
 
 	public void init() {
@@ -74,6 +89,7 @@ public class Level {
 			return;
 
 		tileMap = new HashMap<Point, Tile>();
+		tileEffectList = new ArrayList<TileEffect>();
 
 		lvlWidth = collisionsLayer.getWidth();
 		lvlHeight = collisionsLayer.getHeight();
@@ -109,7 +125,6 @@ public class Level {
 		g.fillRect(0, 0, Constants.GAME_WIDTH, Constants.GAME_HEIGHT);
 
 		Point temp = new Point(0, 0);
-
 		/*
 		 * Draw tiles with scaling - focused on the player.
 		 */
@@ -121,12 +136,26 @@ public class Level {
 				if (t == null)
 					continue;
 
+				if (setupLavaGlow) {
+					if (t.isBeatLava()) {
+						TileLavaGlowEffect effect = new TileLavaGlowEffect(x,
+								y, 1000 * 60 / bpm);
+						tileEffectList.add(effect);
+					}
+				}
+
 				int xPos = getScaledX(playerX, x);
 				int width = getScaledX(playerX, x + 1) - xPos;
 				drawTile(t, g, xPos, y * Constants.TILE_WIDTH, width,
 						Constants.TILE_WIDTH);
 			}
 		}
+
+		for (TileEffect t : tileEffectList) {
+			if (t instanceof TileLavaGlowEffect)
+				((TileLavaGlowEffect) t).render(g, playerX);
+		}
+		setupLavaGlow = false;
 	}
 
 	private void drawTile(Tile t, Graphics g, int x, int y, int width,
@@ -139,11 +168,6 @@ public class Level {
 			g.setColor((altBeat % 2 == 0 ? altSecondaryColor
 					: secondaryCollisionColor));
 			g.drawRect(x, y, width, height);
-		}
-
-		if (t.isBeatLava()) {
-			g.setColor(new Color(0.5f - glowLavaTimer, 0f, 0f));
-			g.drawRect(x + 1, y + 1, width - 2, height - 2);
 		}
 	}
 
@@ -160,7 +184,7 @@ public class Level {
 		return tile != null && tile.isCollidable();
 	}
 
-	public int getScaledX(int playerX, int tileX) {
+	public static int getScaledX(int playerX, int tileX) {
 		int dist = Math.abs(playerX - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2;
 		if (playerX < tileX)

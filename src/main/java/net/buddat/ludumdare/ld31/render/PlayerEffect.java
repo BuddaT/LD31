@@ -3,9 +3,9 @@ package net.buddat.ludumdare.ld31.render;
 /**
  * Visual effect on the player
  */
-public abstract class PlayerEffect {
-	private int x;
-	private int y;
+public abstract class PlayerEffect implements Effect {
+	private final int x;
+	private final int y;
 	private int durationCompleted = 0;
 
 	public PlayerEffect(int x, int y) {
@@ -27,6 +27,7 @@ public abstract class PlayerEffect {
 		return y;
 	}
 
+	@Override
 	public void update(int delta) {
 		durationCompleted += delta;
 	}
