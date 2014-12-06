@@ -21,7 +21,7 @@ public final class BeatCalculator {
 	 * @return Whether or not the position is on the beat.
 	 */
 	public boolean isOnBeat(float position, int bpm) {
-		return beatDifference(position, bpm) <= tolerance;
+		return Math.abs(beatDifference(position, bpm)) <= tolerance;
 	}
 
 	/**
@@ -35,9 +35,9 @@ public final class BeatCalculator {
 		double secondsPerBeat = calcSecondsPerBeat(bpm);
 		double offsetPosition = position - BEAT_OFFSET;
 		double beatSearchPoint = offsetPosition / secondsPerBeat;
-		double prevBeat = Math.floor(beatSearchPoint) * secondsPerBeat;
-		double nextBeat = Math.ceil(beatSearchPoint) * secondsPerBeat;
-		return Math.min(offsetPosition - prevBeat, nextBeat - offsetPosition);
+		double prevBeatDiff = offsetPosition - Math.floor(beatSearchPoint) * secondsPerBeat;
+		double nextBeatDiff = offsetPosition - Math.ceil(beatSearchPoint) * secondsPerBeat;
+		return Math.abs(prevBeatDiff) < Math.abs(nextBeatDiff) ? prevBeatDiff : nextBeatDiff;
 	}
 
 	public double timeToNextBeat(float position, int bpm) {

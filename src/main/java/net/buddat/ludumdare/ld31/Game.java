@@ -3,6 +3,7 @@ package net.buddat.ludumdare.ld31;
 import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.world.Level;
 
+import net.buddat.ludumdare.ld31.world.Player;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
@@ -13,23 +14,25 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	private static final String TITLE_TRACK = "chipshit_128.ogg";
 	private static final double TOLERANCE = 0.1;
+	private static final int START_X = 2;
 
 	private MusicDirector music;
 	private Controller controller;
 	private final BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
-	private double timeToNextBeat = 0;
 
 	private Level l0;
+
+	private Player player;
 
 	public Game(String title) {
 		super(title);
 	}
 
-	int playerX = 2;
 	int sinceLast = 0;
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		l0.render(gc, g, playerX);
+		l0.render(gc, g, player.getX());
+		player.render(gc, g);
 	}
 
 	@Override
@@ -38,15 +41,15 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		l0.init();
 
 		music = new MusicDirector(TITLE_TRACK, this);
-		controller = new Controller(music);
-		timeToNextBeat = beatCalculator.timeToNextBeat(music.getPosition(), music.getBpm());
+		player = new Player(START_X, l0.getStartY());
+		controller = new Controller(music, player);
 	}
 
 	@Override
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
 		if (sinceLast > 1000 * 60 / music.getBpm()) {
-			playerX++;
+			player.setX(player.getX() + 1);
 			sinceLast = 0;
 			l0.update(delta, true);
 		} else {
@@ -72,6 +75,6 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	@Override
 	public void onMusicChanged(String oldTrack, float oldPosition, int oldBpm, String newTrack, int newBpm) {
-		timeToNextBeat = beatCalculator.timeToNextBeat(music.getPosition(), music.getBpm());
+		sinceLast = 0;
 	}
 }

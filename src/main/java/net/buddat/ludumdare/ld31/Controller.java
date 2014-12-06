@@ -1,5 +1,6 @@
 package net.buddat.ludumdare.ld31;
 
+import net.buddat.ludumdare.ld31.world.Player;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.KeyListener;
 
@@ -10,11 +11,13 @@ public class Controller {
 	private static final double TOLERANCE = 0.1;
 	private final MusicDirector musicDirector;
 	private final BeatCalculator beatCalculator;
+	private final Player player;
 	private boolean wasSpacePressed = false;
 
-	public Controller(MusicDirector musicDirector) {
+	public Controller(MusicDirector musicDirector, Player player) {
 		this.musicDirector = musicDirector;
 		this.beatCalculator = new BeatCalculator(TOLERANCE);
+		this.player = player;
 	}
 
 	public void handleInput(Input input) {
@@ -30,7 +33,11 @@ public class Controller {
 		} else {
 			wasSpacePressed = false;
 		}
-		if (input.isKeyPressed(Input.KEY_PERIOD)) {
+		if (input.isKeyPressed(Input.KEY_UP)) {
+			player.setY(player.getY() - 1);
+		} else if (input.isKeyPressed(Input.KEY_DOWN)) {
+			player.setY(player.getY() + 1);
+		} else if (input.isKeyPressed(Input.KEY_PERIOD)) {
 			musicDirector.randomTrack();
 		}
 	}

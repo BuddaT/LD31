@@ -172,6 +172,10 @@ public class Level {
 		return levelNum;
 	}
 
+	public int getStartY() {
+		return (lvlHeight + 1) / 2;
+	}
+
 	private class Tile {
 
 		private final Point position;
