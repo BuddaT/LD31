@@ -44,7 +44,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		l0.init();
 
 		music = new MusicDirector(TITLE_TRACK, this);
-		player = new Player(START_X, l0.getStartY());
+		player = new Player(START_X, l0.getStartY(), l0);
 		controller = new Controller(music, player);
 	}
 
@@ -52,12 +52,17 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
 		if (sinceLast > 1000 * 60 / music.getBpm()) {
-			player.setX(player.getX() + 1);
-			sinceLast = 0;
-			l0.update(delta, true);
+			if (l0.isCollideable(player.getX() + 1, player.getY())) {
+				// game over
+			} else {
+				player.setX(player.getX() + 1);
+				sinceLast = 0;
+				l0.update(delta, true);
+			}
 		} else {
 			l0.update(delta, false);
 		}
+		player.update(delta);
 
 		controller.handleInput(gc.getInput());
 	}

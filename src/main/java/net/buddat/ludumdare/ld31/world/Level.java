@@ -181,29 +181,8 @@ public class Level {
 		return (lvlHeight + 1) / 2;
 	}
 
-	private class Tile {
-
-		private final Point position;
-		private boolean collidable;
-
-		// private MapObject object;
-
-		Tile(Point p, boolean c) {
-			position = p;
-			collidable = c;
-		}
-
-		private Point getPosition() {
-			return position;
-		}
-
-		private boolean isCollidable() {
-			return collidable;
-		}
-
-		private void setCollidable(boolean c) {
-			collidable = c;
-		}
+	public boolean isCollideable(int x, int y) {
+		Tile tile = tileMap.get(new Point(x, y));
+		return tile != null && tile.isCollidable();
 	}
-
 }
