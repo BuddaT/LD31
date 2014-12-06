@@ -43,6 +43,7 @@ public class Game extends BasicGame {
 		if (sinceLast > 1000 * 60 / 128) {
 			playerX++;
 			sinceLast = 0;
+			l0.update(delta);
 		}
 
         controller.handleInput(gc.getInput());

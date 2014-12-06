@@ -3,6 +3,7 @@ package net.buddat.ludumdare.ld31.world;
 import java.awt.Point;
 import java.util.HashMap;
 
+import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.constants.Constants;
 
 import org.newdawn.slick.Color;
@@ -20,10 +21,16 @@ public class Level {
 
 	private HashMap<Point, Tile> tileMap;
 
-	private final Color collisionColor = Color.blue;
+	private Color collisionColor = ColorDirector.getCurrentPrimary();
+	private Color secondaryColor = ColorDirector.getCurrentSecondary();
 
 	public Level(int levelNum) {
 		this.levelNum = levelNum;
+	}
+	
+	public void update(int delta) {
+		collisionColor = ColorDirector.getRandomPrimary();
+		secondaryColor = ColorDirector.getCurrentSecondary();
 	}
 
 	public void init() {
@@ -142,7 +149,7 @@ public class Level {
 		g.fillRect(x, y, width, height);
 
 		// TODO: Replace with glow in sync with beat
-		g.setColor(Color.white);
+		g.setColor(secondaryColor);
 		g.drawRect(x, y, width, height);
 	}
 
