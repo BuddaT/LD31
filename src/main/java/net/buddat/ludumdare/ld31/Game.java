@@ -11,6 +11,9 @@ import org.newdawn.slick.SlickException;
 
 public class Game extends BasicGame {
 
+    MusicDirector music;
+    Controller controller;
+
 	private Level l0;
 
 	public Game(String title) {
@@ -29,6 +32,9 @@ public class Game extends BasicGame {
 	public void init(GameContainer gc) throws SlickException {
 		l0 = new Level(0);
 		l0.init();
+
+        music = new MusicDirector("chipshit_128.ogg");
+        controller = new Controller(music);
 	}
 
 	@Override
@@ -38,6 +44,8 @@ public class Game extends BasicGame {
 			playerX++;
 			sinceLast = 0;
 		}
+
+        controller.handleInput(gc.getInput());
 	}
 
 	public static void main(String[] args) {
