@@ -47,17 +47,6 @@ public final class BeatCalculator {
 		return Math.ceil(offsetPosition / secondsPerBeat) * secondsPerBeat - offsetPosition;
 	}
 
-	public double closestBeat(float position, int bpm) {
-		double secondsPerBeat = calcSecondsPerBeat(bpm);
-		double offsetPosition = position - BEAT_OFFSET;
-		double beatSearchPoint = offsetPosition / secondsPerBeat;
-		double prevBeat = Math.floor(beatSearchPoint) * secondsPerBeat;
-		double nextBeat = Math.ceil(beatSearchPoint) * secondsPerBeat;
-		System.out.println("prev: " + prevBeat + " mid: " + beatSearchPoint + " next:" + nextBeat);
-		return Math.abs(offsetPosition - prevBeat) < Math.abs(nextBeat - offsetPosition) ?
-				prevBeat : nextBeat;
-	}
-
 	public double calcSecondsPerBeat(int bpm) {
 		return SECONDS_PER_MINUTE / (double) bpm;
 	}

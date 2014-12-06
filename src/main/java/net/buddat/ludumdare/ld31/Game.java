@@ -45,20 +45,12 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	@Override
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
-		if (sinceLast > 1000 * 60 / 128) {
+		if (sinceLast > 1000 * 60 / music.getBpm()) {
 			playerX++;
 			sinceLast = 0;
 			l0.update(delta);
 		}
 
-		timeToNextBeat -= ((double) delta) / 1000;
-		if (timeToNextBeat <= 0) {
-			float position = music.getPosition();
-			timeToNextBeat = beatCalculator.closestBeat(
-					(float) (position + beatCalculator.calcSecondsPerBeat(music.getBpm())), music.getBpm())
-					- position;
-			System.out.println("Beat: " + position + " next: " + timeToNextBeat);
-		}
 		controller.handleInput(gc.getInput());
 	}
 
