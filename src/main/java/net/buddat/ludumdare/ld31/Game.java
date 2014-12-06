@@ -9,16 +9,20 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 
-public class Game extends BasicGame {
+public class Game extends BasicGame implements MusicDirectorListener {
 
-    MusicDirector music;
-    Controller controller;
+	private static final String TITLE_TRACK = "chipshit_128.ogg";
+	private static final double TOLERANCE = 0.1;
+
+	private MusicDirector music;
+	private Controller controller;
+	private BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
+	private double timeToNextBeat = 0;
 
 	private Level l0;
 
 	public Game(String title) {
 		super(title);
-		// TODO Auto-generated constructor stub
 	}
 
 	int playerX = 2;
@@ -33,8 +37,9 @@ public class Game extends BasicGame {
 		l0 = new Level(0);
 		l0.init();
 
-        music = new MusicDirector("chipshit_128.ogg");
-        controller = new Controller(music);
+		music = new MusicDirector(TITLE_TRACK, this);
+		controller = new Controller(music);
+		timeToNextBeat = beatCalculator.timeToNextBeat(music.getPosition(), music.getBpm());
 	}
 
 	@Override
@@ -46,7 +51,15 @@ public class Game extends BasicGame {
 			l0.update(delta);
 		}
 
-        controller.handleInput(gc.getInput());
+		timeToNextBeat -= ((double) delta) / 1000;
+		if (timeToNextBeat <= 0) {
+			float position = music.getPosition();
+			timeToNextBeat = beatCalculator.closestBeat(
+					(float) (position + beatCalculator.calcSecondsPerBeat(music.getBpm())), music.getBpm())
+					- position;
+			System.out.println("Beat: " + position + " next: " + timeToNextBeat);
+		}
+		controller.handleInput(gc.getInput());
 	}
 
 	public static void main(String[] args) {
@@ -63,4 +76,8 @@ public class Game extends BasicGame {
 		}
 	}
 
+	@Override
+	public void onMusicChanged(String oldTrack, float oldPosition, int oldBpm, String newTrack, int newBpm) {
+		timeToNextBeat = beatCalculator.timeToNextBeat(music.getPosition(), music.getBpm());
+	}
 }
