@@ -5,8 +5,8 @@ import net.buddat.ludumdare.ld31.music.BeatCalculator;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
 import net.buddat.ludumdare.ld31.music.MusicDirectorListener;
 import net.buddat.ludumdare.ld31.world.Level;
-
 import net.buddat.ludumdare.ld31.world.Player;
+
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
@@ -54,9 +54,9 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		if (sinceLast > 1000 * 60 / music.getBpm()) {
 			player.setX(player.getX() + 1);
 			sinceLast = 0;
-			l0.update(delta, true);
+			l0.update(delta, true, music.getBpm());
 		} else {
-			l0.update(delta, false);
+			l0.update(delta, false, music.getBpm());
 		}
 
 		controller.handleInput(gc.getInput());

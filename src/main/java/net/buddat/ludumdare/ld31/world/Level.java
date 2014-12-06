@@ -18,7 +18,7 @@ public class Level {
 	private final int levelNum;
 	private int lvlWidth, lvlHeight;
 
-	private Image collisionsLayer;
+	private Image collisionsLayer, objectsLayer;
 
 	private HashMap<Point, Tile> tileMap;
 
@@ -31,20 +31,25 @@ public class Level {
 	private int altBeat = 0;
 	private final int beatsPerChange;
 
+	private float glowLavaTimer = 1.0f;
+
 	public Level(int levelNum, int beatsPerChange) {
 		this.levelNum = levelNum;
 		this.beatsPerChange = beatsPerChange;
 	}
 	
-	public void update(int delta, boolean beat) {
+	public void update(int delta, boolean beat, int bpm) {
 		if (beat) {
 			altBeat++;
+			glowLavaTimer = 1.0f;
 
 			if (altBeat % beatsPerChange == 0) {
 				collisionColor = ColorDirector.getRandomPrimary(ColorType.WALL);
 				secondaryCollisionColor = ColorDirector
 						.getCurrentSecondary(ColorType.WALL);
 			}
+		} else {
+			glowLavaTimer -= 0.017f;
 		}
 	}
 
@@ -52,6 +57,10 @@ public class Level {
 		try {
 			collisionsLayer = new Image(Constants.LEVEL_FILE_PREFIX
 					+ levelNum + Constants.LEVEL_COLLISION_LAYER
+					+ Constants.LEVEL_FILE_FORMAT);
+			
+			objectsLayer = new Image(Constants.LEVEL_FILE_PREFIX
+					+ levelNum + Constants.LEVEL_OBJECT_LAYER
 					+ Constants.LEVEL_FILE_FORMAT);
 		} catch (SlickException e) {
 			e.printStackTrace();
@@ -73,6 +82,21 @@ public class Level {
 					Point p = new Point(x, y);
 					Tile t = new Tile(p, true);
 					tileMap.put(p, t);
+				}
+				
+				pixelColor = objectsLayer.getColor(x, y);
+
+				if (pixelColor.getAlpha() > 0) {
+					if (pixelColor.getRed() == 255) {
+						Point p = new Point(x, y);
+						Tile t = tileMap.get(p);
+						if (t == null) {
+							t = new Tile(p, false);
+							tileMap.put(p, t);
+						}
+
+						t.setBeatLava(true);
+					}
 				}
 			}
 		}
@@ -96,13 +120,13 @@ public class Level {
 				if (t == null)
 					continue;
 
-				if (t.isCollidable())
-					drawTile(
-							g,
-							(Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2)
-									- ((playerX - x) * Constants.TILE_WIDTH), y
-									* Constants.TILE_WIDTH,
-							Constants.TILE_WIDTH, Constants.TILE_WIDTH);
+				drawTile(
+						t,
+						g,
+						(Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2)
+								- ((playerX - x) * Constants.TILE_WIDTH), y
+								* Constants.TILE_WIDTH,
+						Constants.TILE_WIDTH, Constants.TILE_WIDTH);
 			}
 		}
 
@@ -128,10 +152,9 @@ public class Level {
 					if (t == null)
 						continue;
 
-					if (t.isCollidable())
-						drawTile(g, highX - accOffset,
-								y * Constants.TILE_WIDTH,
-								width, Constants.TILE_WIDTH);
+					drawTile(t, g, highX - accOffset,
+							y * Constants.TILE_WIDTH,
+							width, Constants.TILE_WIDTH);
 				}
 			}
 		}
@@ -152,9 +175,9 @@ public class Level {
 					if (t == null)
 						continue;
 
-					if (t.isCollidable())
-						drawTile(g, lowX + accOffset, y * Constants.TILE_WIDTH,
-								width, Constants.TILE_WIDTH);
+					drawTile(t, g, lowX + accOffset, y
+							* Constants.TILE_WIDTH,
+							width, Constants.TILE_WIDTH);
 				}
 				accOffset += width;
 				width -= 2;
@@ -162,15 +185,22 @@ public class Level {
 		}
 	}
 
-	Color glowColor = new Color(0, 0, 0);
-	private void drawTile(Graphics g, int x, int y, int width, int height) {
-		g.setColor(collisionColor);
-		g.fillRect(x, y, width, height);
+	private void drawTile(Tile t, Graphics g, int x, int y, int width,
+			int height) {
+		if (t.isCollidable()) {
+			g.setColor(collisionColor);
+			g.fillRect(x, y, width, height);
 
-		// TODO: Replace with glow in sync with beat
-		g.setColor((altBeat % 2 == 0 ? altSecondaryColor
-				: secondaryCollisionColor));
-		g.drawRect(x, y, width, height);
+			// TODO: Replace with glow in sync with beat
+			g.setColor((altBeat % 2 == 0 ? altSecondaryColor
+					: secondaryCollisionColor));
+			g.drawRect(x, y, width, height);
+		}
+
+		if (t.isBeatLava()) {
+			g.setColor(new Color(0.5f - glowLavaTimer, 0f, 0f));
+			g.drawRect(x, y, width, height);
+		}
 	}
 
 	public int getLevelNumber() {
@@ -185,6 +215,7 @@ public class Level {
 
 		private final Point position;
 		private boolean collidable;
+		private boolean beatLava = false;
 
 		// private MapObject object;
 
@@ -203,6 +234,14 @@ public class Level {
 
 		private void setCollidable(boolean c) {
 			collidable = c;
+		}
+
+		private boolean isBeatLava() {
+			return beatLava;
+		}
+
+		private void setBeatLava(boolean l) {
+			beatLava = l;
 		}
 	}
 
