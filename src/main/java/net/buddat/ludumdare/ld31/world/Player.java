@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
+import net.buddat.ludumdare.ld31.Title;
 import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.render.PlayerDeathEffect;
@@ -147,7 +148,7 @@ public class Player {
 			setHealth(getHealth() - 20);
 			level.setTileHot(x, y, false);
 		}
-
+		
 		for (Iterator<PlayerEffect> iter = effects.iterator(); iter.hasNext();) {
 			PlayerEffect effect = iter.next();
 			effect.update(delta);
@@ -187,24 +188,10 @@ public class Player {
 		/*
 		 * Draw Healthbar
 		 */
-		{
-			int blockWidth = 10;
-			int gap = 2;
-			int segments = 20;
-			int bgW = segments * (blockWidth + gap) + gap;
-			int bgX = Constants.GAME_WIDTH - 20 - bgW;
-
-			g.setColor(ColorDirector.getSecondary(0));
-			g.fillRect(bgX, Constants.GAME_HEIGHT - 40, bgW, 20);
-
-			g.setColor(ColorDirector.getPrimary(0));
-			for (int i = 0; i < segments; i++) {
-				if (health >= MAX_HEALTH / segments * i) {
-					g.fillRect(bgX + gap + (blockWidth + gap) * i,
-							Constants.GAME_HEIGHT - 38, blockWidth, 16);
-				}
-			}
-		}
+		String health = "health: " + this.health + " / " + MAX_HEALTH;
+		Title.textFontSmall.drawString(Constants.GAME_WIDTH - 20
+				- Title.textFontSmall.getWidth(health),
+				Constants.GAME_HEIGHT - 40, health);
 	}
 
 	public boolean isDead() {

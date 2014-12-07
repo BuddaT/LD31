@@ -55,6 +55,13 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 		if (title.isVisible())
 			title.render(g);
+
+		if (player.isDead()) {
+			String info = DEATH_LINES[currentLine];
+			int infoWidth = Title.textFont.getWidth(info);
+			Title.textFont.drawString(Constants.GAME_WIDTH / 2 - infoWidth / 2,
+					50, info, ColorDirector.getTextPrimary());
+		}
 	}
 
 	@Override
@@ -158,7 +165,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		lastLevel = null;
 		currentLevel = new Level(this, 1, START_X);
 		currentLevel.init();
-		nextLevel = new Level(this, 1, -currentLevel.getWidth() + START_X);
+		nextLevel = new Level(this, 2, -currentLevel.getWidth() + START_X);
 		nextLevel.init();
 
 		music.playTrack(TITLE_TRACK);
@@ -170,9 +177,25 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		gc.getInput().clearKeyPressedRecord();
 
 		sinceLast = 0;
+
+		currentLine++;
+		if (currentLine >= DEATH_LINES.length)
+			currentLine = DEATH_LINES.length - 1;
 	}
 
 	public void setNeedsReset(boolean b) {
 		needsReset = b;
 	}
+
+	private static int currentLine = -1;
+
+	private static final String[] DEATH_LINES = {
+			"You died. ESC to try again.",
+			"You almost had it, except for dying.", "You died! Again!",
+			"Do you get sick of dying?",
+			"Oh come on, how did you mess that one up?", "...",
+			"You know the drill, ESC to go again.",
+			"Are you at least learning from these deaths?",
+			"You died...are you surprised?", "Again?",
+			"This is painful to watch...", "I'm out of here, good luck.", "..." };
 }

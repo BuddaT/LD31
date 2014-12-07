@@ -11,7 +11,7 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class Title {
 
-	private static final int MOVE_PER_BEAT = Constants.TILE_WIDTH * 3;
+	private static final int MOVE_PER_BEAT = Constants.TILE_WIDTH * 5;
 
 	private static final int MAX_ITEMS = 1;
 
@@ -19,7 +19,7 @@ public class Title {
 
 	private Image titleImage;
 
-	private UnicodeFont textFont;
+	public static UnicodeFont textFont, textFontSmall;
 
 	private int selectedItem = 0;
 
@@ -31,10 +31,15 @@ public class Title {
 		try {
 			titleImage = new Image("levels/title.png");
 
-			textFont = new UnicodeFont("Inversionz.otf", 96, false, false);
+			textFont = new UnicodeFont("NirmalaS.ttf", 48, false, false);
 			textFont.addAsciiGlyphs();
 			textFont.getEffects().add(new ColorEffect(java.awt.Color.WHITE));
 			textFont.loadGlyphs();
+
+			textFontSmall = new UnicodeFont("NirmalaS.ttf", 24, false, false);
+			textFontSmall.addAsciiGlyphs();
+			textFontSmall.getEffects().add(new ColorEffect(java.awt.Color.WHITE));
+			textFontSmall.loadGlyphs();
 		} catch (SlickException e) {
 			e.printStackTrace();
 		}
@@ -44,10 +49,12 @@ public class Title {
 		titleImage.draw(xPos, 0);
 
 		for (int i = 0; i <= MAX_ITEMS; i++) {
-			textFont.drawString(xPos + 650, 200 + (i * 80), (i == 0 ? "start"
-					: " exit"),
-					(selectedItem == i ? ColorDirector.getPrimary(0)
-							: ColorDirector.getSecondary(0)));
+			String text = (i == 0 ? "start" : " exit");
+			int width = textFont.getWidth(text);
+			textFont.drawString(xPos + titleImage.getWidth() - 30 - width,
+					260 + (i * 50), text,
+					(selectedItem == i ? ColorDirector.getTextPrimary()
+							: ColorDirector.getTextSecondary()));
 		}
 	}
 

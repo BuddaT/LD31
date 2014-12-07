@@ -14,6 +14,8 @@ public class ColorDirector {
 	
 	private static final Color BACKGROUND_COLOR = Color.black;
 	
+	private static final Color TEXT_COLOR_PRIMARY, TEXT_COLOR_SECONDARY;
+
 	public static enum ColorType { PLAYER, WALL, OBJECT, PROJECTILE };
 
 	private static int currentWallColor = 0, currentPlayerColor = 1;
@@ -52,6 +54,9 @@ public class ColorDirector {
 
 		PRIMARY_COLOR_MAP = Collections.unmodifiableMap(pcm);
 		SECONDARY_COLOR_MAP = Collections.unmodifiableMap(scm);
+
+		TEXT_COLOR_PRIMARY = Color.decode("#A4A4A4");
+		TEXT_COLOR_SECONDARY = Color.decode("#505050");
 
 		colorRandom = new Random(System.currentTimeMillis());
 	}
@@ -114,6 +119,14 @@ public class ColorDirector {
 		return BACKGROUND_COLOR;
 	}
 	
+	public static Color getTextPrimary() {
+		return TEXT_COLOR_PRIMARY;
+	}
+
+	public static Color getTextSecondary() {
+		return TEXT_COLOR_SECONDARY;
+	}
+
 	private static void setColor(ColorType c, int newColor) {
 		switch (c) {
 			case PLAYER:
