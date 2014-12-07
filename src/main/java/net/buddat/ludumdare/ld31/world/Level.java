@@ -20,7 +20,7 @@ import org.newdawn.slick.SlickException;
 public class Level {
 
 	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 /*- Constants.TILE_WIDTH / 2*/);
-	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.3f;
+	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.35f;
 	private static final int VIEW_RANGE = 80;
 
 	private final int levelNum;
@@ -167,7 +167,7 @@ public class Level {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
 			g.fillRect(x, y, width, height);
 
-			if (x < 2 || x > Constants.GAME_WIDTH - 2)
+			if (x < scaledX40Left || x > scaledX40Right)
 				return;
 
 			g.setColor(ColorDirector.getCurrentSecondary(ColorType.WALL));
@@ -200,15 +200,23 @@ public class Level {
 		return tile != null && tile.isCollidable();
 	}
 
+	private static final int scaledX40Right = getScaledX(0, 40);
+	private static final int scaledX40Left = getScaledX(40, 0);
+
 	public static int getScaledX(int xPosition, int tileX) {
 		int dist = Math.abs(xPosition - tileX);
-		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2;
+		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2f;
+
+		if (dist > 40)
+			if (xPosition < tileX)
+				return scaledX40Right + (dist - 40);
+			else
+				return scaledX40Left - (dist - 40);
+
 		if (xPosition < tileX)
-			return CENTER_TILE_X
-					+ (int) Math.max(1, (pos * Constants.TILE_WIDTH));
+			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);
 		else
-			return CENTER_TILE_X
-					- (int) Math.max(1, (pos * Constants.TILE_WIDTH));
+			return CENTER_TILE_X - (int) (pos * Constants.TILE_WIDTH);
 	}
 
 	private class Tile {
