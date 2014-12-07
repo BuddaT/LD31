@@ -142,11 +142,24 @@ public class MusicDirector {
 		@Override
 		public void run() {
 			try {
+				boolean goToNext = false;
 				QueueAction action = queue.take();
 				while (action != null && action.type != QueueActionType.END) {
 					if (action.type == QueueActionType.LOOP) {
 						// Only want to loop if there are no other actions
-						if (!queue.isEmpty()) {
+						if (goToNext) {
+							int oldSlice = currentSlice;
+							currentSlice = (currentSlice + 1) % SLICES.get(currentMusicName);
+							if (currentMusic != null) {
+								currentMusic.removeListener(this);
+							}
+							currentMusic = MUSICS.get(generateSliceName(currentMusicName, currentSlice));
+							currentMusic.addListener(this);
+							System.out.println("Playing next slice");
+							currentMusic.play();
+							listener.onSliceChanged(currentMusicName, oldSlice, currentSlice);
+							goToNext = false;
+						} else if (!queue.isEmpty()) {
 							continue;
 						} else if (currentMusic == null) {
 							System.err.println("Null music when LOOP requested");
@@ -154,6 +167,7 @@ public class MusicDirector {
 							currentMusic.play();
 						}
 					} else if (action.type == QueueActionType.PLAY) {
+						goToNext = false;
 						String oldTrack = "";
 						float oldPosition = 0;
 						int oldBpm = 0;
@@ -175,26 +189,15 @@ public class MusicDirector {
 						currentMusic.play();
 						listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicName, BEATS_PER_MINUTE.get(currentMusicName));
 					} else if (action.type == QueueActionType.NEXT) {
-						// Ignore all other notifications until the next slice is available
-						System.out.println("Next slice queued for playing");
-						action = queue.take();
-						while (action.type != QueueActionType.LOOP) {
-							if (action.type == QueueActionType.END) {
-								System.out.println("Music end");
-								currentMusic.stop();
-								return;
-							}
+						// On the next loop notification,
+						if (goToNext) {
+							System.out.println("Next slice already queued for playing");
+						} else if (SLICES.containsKey(currentMusicName)) {
+							System.out.println("Next slice queued for playing, waiting for end of current slice");
+							goToNext = true;
+						} else {
+							System.err.println("Can't take next slice, track " + currentMusicName + " isn't sliced");
 						}
-						System.out.println("Looping to next slice");
-						if (currentMusic != null) {
-							currentMusic.removeListener(this);
-						}
-						int oldSlice = currentSlice;
-						currentSlice = (currentSlice + 1) % SLICES.get(currentMusicName);
-						currentMusic = MUSICS.get(generateSliceName(currentMusicName, currentSlice));
-						currentMusic.addListener(this);
-						currentMusic.play();
-						listener.onSliceChanged(currentMusicName, oldSlice, currentSlice);
 					}
 					action = queue.take();
 				}
