@@ -22,12 +22,8 @@ public class Projectile {
 	private Vector2f position;
 	private float distanceLeft = LIMIT;
 	private boolean hasExpired = false;
-	private float renderXScale;
 
 	public Projectile(int tileX, int tileY, Vector2f direction, Level level) {
-		int scaleX = Level.getScaledX(level.getXPosition(), tileX);
-		int width = Level.getScaledX(level.getXPosition(), tileX + 1) - scaleX;
-		renderXScale = 1.0f / Constants.TILE_WIDTH * width;
 		position = new Vector2f(
 				tileX * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
 				tileY * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2);
@@ -52,7 +48,16 @@ public class Projectile {
 
 	public void render(Graphics g) {
 		g.setColor(DEFAULT_COLOR);
-		g.fillOval(position.getX() - RADIUS, position.getY() - RADIUS, RADIUS * 2, RADIUS * 2, SEGMENTS);
+		// Tile for current position
+		int tileX = (int) (position.getX() / Constants.TILE_WIDTH);
+		// Scaled X position for the given tile
+		int scaleTileX = Level.getScaledX(level.getXPosition(), tileX);
+		int scaleTileWidth = Level.getScaledX(level.getXPosition(), tileX + 1) - scaleTileX;
+		float tileScalingFactor = ((float) scaleTileWidth) / Constants.TILE_WIDTH;
+		float scaleXRadius = tileScalingFactor * RADIUS;
+		// Scaled left x position
+		float scaleXLeft = (position.getX() % Constants.TILE_WIDTH) * tileScalingFactor + scaleTileX - scaleXRadius;
+		g.fillOval(scaleXLeft, position.getY() - RADIUS, scaleXRadius * 2, RADIUS * 2, SEGMENTS);
 	}
 
 	public boolean hasExpired() {
