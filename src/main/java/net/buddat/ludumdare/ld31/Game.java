@@ -141,12 +141,12 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		nextLevel = new Level(this, 1, -25);
 		nextLevel.init();
 
-		music = new MusicDirector(this);
 		try {
-			music.start(TITLE_TRACK);
+			music = new MusicDirector(TITLE_TRACK, this);
 		} catch (SlickException e) {
 			e.printStackTrace();
 		}
+		new Thread(music).start();
 		player = new Player(40, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, player);
 
