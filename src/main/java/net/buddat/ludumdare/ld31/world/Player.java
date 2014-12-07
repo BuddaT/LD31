@@ -100,7 +100,8 @@ public class Player {
 					y++;
 					break;
 				case LEFT:
-					x--;
+					if (x != 0)
+						x--;
 					break;
 				case RIGHT:
 					x++;

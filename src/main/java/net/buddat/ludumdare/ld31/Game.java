@@ -83,6 +83,9 @@ public class Game extends BasicGame implements MusicDirectorListener {
 				nextLevel.update(delta, false, music.getBpm());
 
 			player.update(delta, false, music.getBpm());
+			if (player.getX() > currentLevel.getWidth()) {
+				nextLevel(true);
+			}
 		}
 
 		controller.handleInput(gc.getInput());
