@@ -18,7 +18,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.geom.Vector2f;
 
 public class Level {
 
@@ -134,9 +133,11 @@ public class Level {
 					if (collisionPixelColor.getAlpha() > 0)
 						t.setCollidable(true);
 
-					if (objectPixelColor.getRed() == LAVA_R) {
+					if (objectPixelColor.getRed() == LAVA_R
+							&& objectPixelColor.getAlpha() > 0) {
 						t.setBeatLava(true);
-					} else if (objectPixelColor.getBlue() == PROJECTILE_LEFT_B) {
+					} else if (objectPixelColor.getBlue() == PROJECTILE_LEFT_B
+							&& objectPixelColor.getAlpha() > 0) {
 						ProjectileEmitter emitter = new ProjectileEmitter(x, y, 180, this, projectiles);
 						t.setProjectileEmitter(emitter);
 						projectileEmitters.add(emitter);
