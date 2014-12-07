@@ -41,6 +41,8 @@ public class Controller {
 			player.setY(player.getY() + 1);
 		} else if (input.isKeyPressed(Input.KEY_PERIOD)) {
 			musicDirector.randomTrack();
+		} else if (input.isKeyPressed(Input.KEY_SLASH)) {
+			musicDirector.nextSlice();
 		} else if (input.isKeyPressed(Input.KEY_X)) {
 			player.addEffect(new PlayerDamageEffect(player.getRenderCentreX(), player.getRenderCentreY()));
 		}

@@ -82,7 +82,12 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	}
 
 	@Override
-	public void onMusicChanged(String oldTrack, float oldPosition, int oldBpm, String newTrack, int newBpm) {
+	public void onTrackChanged(String oldTrack, float oldPosition, int oldBpm, String newTrack, int newBpm) {
+		sinceLast = 0;
+	}
+
+	@Override
+	public void onSliceChanged(String musicBaseName, float oldPosition, int oldSlice, int newSlice) {
 		sinceLast = 0;
 	}
 }
