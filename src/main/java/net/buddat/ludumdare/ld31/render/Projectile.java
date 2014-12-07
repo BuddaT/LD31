@@ -1,5 +1,6 @@
 package net.buddat.ludumdare.ld31.render;
 
+import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.world.Level;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -11,32 +12,40 @@ import org.newdawn.slick.geom.Vector2f;
 public class Projectile {
 	private static final Color DEFAULT_COLOR = Color.yellow;
 	// Speed in distance/second
-	private static final float DEFAULT_SPEED = 1;
+	private static final float DEFAULT_SPEED = 20;
 	private static final int RADIUS = 2;
 	private static final int SEGMENTS = 6;
-	private static final float LIMIT = 60;
+	private static final float LIMIT = 200;
 
 	private final Vector2f movement;
 	private final Level level;
 	private Vector2f position;
 	private float distanceLeft = LIMIT;
 	private boolean hasExpired = false;
+	private float renderXScale;
 
-	public Projectile(int sourceX, int sourceY, Vector2f direction, Level level) {
-		position = new Vector2f(sourceX, sourceY);
-		movement = new Vector2f(direction.getTheta()).scale(DEFAULT_SPEED);
+	public Projectile(int tileX, int tileY, Vector2f direction, Level level) {
+		int scaleX = Level.getScaledX(level.getXPosition(), tileX);
+		int width = Level.getScaledX(level.getXPosition(), tileX + 1) - scaleX;
+		renderXScale = 1.0f / Constants.TILE_WIDTH * width;
+		position = new Vector2f(
+				tileX * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
+				tileY * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2);
+		Vector2f newDirection = new Vector2f(direction.getTheta());
+		movement = newDirection.scale(DEFAULT_SPEED);
 		this.level = level;
 	}
 
 	public void update(int delta) {
 		if (!hasExpired) {
-			float distance = delta * DEFAULT_SPEED / 1000;
-			if (distance > distanceLeft) {
+			float seconds = ((float) delta) / 1000;
+			Vector2f change = new Vector2f(movement).scale(seconds);
+			if (change.length() > distanceLeft) {
 				distanceLeft = 0;
 				hasExpired = true;
 			} else {
-				Vector2f change = movement.scale(distance);
-				position = position.add(change);
+				distanceLeft -= change.length();
+				position.add(change);
 			}
 		}
 	}

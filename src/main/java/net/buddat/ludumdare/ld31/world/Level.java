@@ -137,7 +137,7 @@ public class Level {
 					if (objectPixelColor.getRed() == LAVA_R) {
 						t.setBeatLava(true);
 					} else if (objectPixelColor.getBlue() == PROJECTILE_LEFT_B) {
-						ProjectileEmitter emitter = new ProjectileEmitter(x, y, 0, this);
+						ProjectileEmitter emitter = new ProjectileEmitter(x, y, 0, this, projectiles);
 						t.setProjectileEmitter(emitter);
 						projectileEmitters.add(emitter);
 					}
@@ -185,7 +185,6 @@ public class Level {
 				((TileLavaGlowEffect) t).render(g, xPosition);
 		}
 		setupLavaGlow = false;
-		Iterator<Projectile> projectileIterator = projectiles.iterator();
 		for (Projectile projectile : projectiles) {
 			projectile.render(g);
 		}

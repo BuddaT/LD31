@@ -3,6 +3,8 @@ package net.buddat.ludumdare.ld31.world;
 import net.buddat.ludumdare.ld31.render.Projectile;
 import org.newdawn.slick.geom.Vector2f;
 
+import java.util.List;
+
 /**
  * Basic emitter of projectiles.
  */
@@ -12,6 +14,7 @@ public class ProjectileEmitter {
 	private final int x;
 	private final int y;
 	private final Level level;
+	private final List<Projectile> projectiles;
 	private int timeBetweenEmissions;
 	private int timeToNextEmission;
 	private final Vector2f direction;
@@ -22,13 +25,14 @@ public class ProjectileEmitter {
 	 * @param y Y tile position
 	 * @param direction Direction of the projectile
 	 */
-	public ProjectileEmitter(int x, int y, double direction, Level level) {
+	public ProjectileEmitter(int x, int y, double direction, Level level, List<Projectile> projectiles) {
 		this.x = x;
 		this.y = y;
 		this.timeBetweenEmissions = DEFAULT_TIME;
 		timeToNextEmission = timeBetweenEmissions;
 		this.direction = new Vector2f(direction);
 		this.level = level;
+		this.projectiles = projectiles;
 	}
 
 	public void update(int delta) {
@@ -36,7 +40,7 @@ public class ProjectileEmitter {
 			timeToNextEmission -= delta;
 		} else {
 			timeToNextEmission = timeBetweenEmissions;
-			emitProjectile();
+			projectiles.add(emitProjectile());
 		}
 	}
 
