@@ -53,7 +53,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		nextLevel = new Level(this, 1, -25);
 		nextLevel.init();
 
-		music = new MusicDirector(TITLE_TRACK, this);
+		music = new MusicDirector(this);
+		music.start(TITLE_TRACK);
 		player = new Player(40, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, player);
 	}
@@ -128,7 +129,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	}
 
 	@Override
-	public void onSliceChanged(String musicBaseName, float oldPosition, int oldSlice, int newSlice) {
+	public void onSliceChanged(String musicBaseName, int oldSlice, int newSlice) {
 		sinceLast = 0;
 	}
 }

@@ -6,5 +6,5 @@ package net.buddat.ludumdare.ld31.music;
 public interface MusicDirectorListener {
 	public void onTrackChanged(String oldTrack, float oldPosition, int oldBpm, String newTrack, int newBpm);
 
-	public void onSliceChanged(String musicBaseName, float oldPosition, int oldSlice, int newSlice);
+	public void onSliceChanged(String musicBaseName, int oldSlice, int newSlice);
 }
