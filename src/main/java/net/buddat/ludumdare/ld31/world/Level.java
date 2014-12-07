@@ -20,8 +20,8 @@ import org.newdawn.slick.SlickException;
 public class Level {
 
 	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 /*- Constants.TILE_WIDTH / 2*/);
-	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.45f;
-	private static final int VIEW_RANGE = 50;
+	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.3f;
+	private static final int VIEW_RANGE = 80;
 
 	private final int levelNum;
 	private int lvlWidth, lvlHeight;
@@ -204,9 +204,11 @@ public class Level {
 		int dist = Math.abs(xPosition - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2;
 		if (xPosition < tileX)
-			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);
+			return CENTER_TILE_X
+					+ (int) Math.max(1, (pos * Constants.TILE_WIDTH));
 		else
-			return CENTER_TILE_X - (int) (pos * Constants.TILE_WIDTH);
+			return CENTER_TILE_X
+					- (int) Math.max(1, (pos * Constants.TILE_WIDTH));
 	}
 
 	private class Tile {
