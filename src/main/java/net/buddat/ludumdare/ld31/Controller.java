@@ -13,18 +13,28 @@ import org.newdawn.slick.Input;
  */
 public class Controller {
 	private static final double TOLERANCE = 0.1;
+
 	private final MusicDirector musicDirector;
 	private final BeatCalculator beatCalculator;
 	private final Player player;
+	private final Game game;
+
 	private boolean wasSpacePressed = false;
 
-	public Controller(MusicDirector musicDirector, Player player) {
+	public Controller(Game g, MusicDirector musicDirector, Player player) {
+		this.game = g;
 		this.musicDirector = musicDirector;
 		this.beatCalculator = new BeatCalculator(TOLERANCE);
 		this.player = player;
 	}
 
 	public void handleInput(Input input) {
+		if (game.getCurrentLevel().getLevelNumber() == 0) {
+			if (input.isKeyPressed(Input.KEY_ENTER)) {
+				game.nextLevel(true);
+			}
+		}
+
 		if (input.isKeyDown(Input.KEY_SPACE)) {
 			if (!wasSpacePressed) {
 				float position = musicDirector.getPosition();

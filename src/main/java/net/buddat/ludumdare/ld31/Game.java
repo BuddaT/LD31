@@ -23,7 +23,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	private Controller controller;
 	private final BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
 
-	private Level l0;
+	private Level currentLevel, lastLevel, nextLevel;
 
 	private Player player;
 
@@ -34,18 +34,28 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	int sinceLast = 0;
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		l0.render(gc, g);
+		if (lastLevel != null)
+			lastLevel.render(gc, g);
+
+		if (currentLevel != null)
+			currentLevel.render(gc, g);
+
+		if (nextLevel != null)
+			nextLevel.render(gc, g);
+
 		player.render(gc, g);
 	}
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		l0 = new Level(0, START_X);
-		l0.init();
+		currentLevel = new Level(this, 0, 25);
+		currentLevel.init();
+		nextLevel = new Level(this, 1, -25);
+		nextLevel.init();
 
 		music = new MusicDirector(TITLE_TRACK, this);
-		player = new Player(START_X, l0.getStartY(), l0);
-		controller = new Controller(music, player);
+		player = new Player(40, currentLevel.getStartY(), currentLevel);
+		controller = new Controller(this, music, player);
 	}
 
 	@Override
@@ -55,14 +65,44 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			sinceLast = 0;
 
 			ColorDirector.update(delta);
-			l0.update(delta, true, music.getBpm());
+
+			if (lastLevel != null)
+				lastLevel.update(delta, true, music.getBpm());
+			if (currentLevel != null)
+				currentLevel.update(delta, true, music.getBpm());
+			if (nextLevel != null)
+				nextLevel.update(delta, true, music.getBpm());
+
 			player.update(delta, true, music.getBpm());
 		} else {
-			l0.update(delta, false, music.getBpm());
+			if (lastLevel != null)
+				lastLevel.update(delta, false, music.getBpm());
+			if (currentLevel != null)
+				currentLevel.update(delta, false, music.getBpm());
+			if (nextLevel != null)
+				nextLevel.update(delta, false, music.getBpm());
+
 			player.update(delta, false, music.getBpm());
 		}
 
 		controller.handleInput(gc.getInput());
+	}
+
+	public Level getCurrentLevel() {
+		return currentLevel;
+	}
+
+	public void nextLevel(boolean forcePlayerChange) {
+		lastLevel = currentLevel;
+		currentLevel = nextLevel;
+		nextLevel = new Level(this, currentLevel.getLevelNumber() + 1,
+				currentLevel.getXPosition() - currentLevel.getWidth());
+		nextLevel.init();
+
+		if (forcePlayerChange) {
+			player.setLevel(currentLevel);
+			player.setX(player.getX() - lastLevel.getWidth());
+		}
 	}
 
 	public static void main(String[] args) {

@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
+import net.buddat.ludumdare.ld31.Game;
 import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.render.TileEffect;
 import net.buddat.ludumdare.ld31.render.TileLavaGlowEffect;
@@ -26,6 +27,8 @@ public class Level {
 	private int lvlWidth, lvlHeight;
 	private int xPosition;
 
+	private final Game game;
+
 	private Image collisionsLayer, objectsLayer;
 
 	private HashMap<Point, Tile> tileMap;
@@ -36,8 +39,14 @@ public class Level {
 	private boolean setupLavaGlow = false;
 	private ArrayList<TileEffect> tileEffectList;
 
-	public Level(int levelNum, int startingX) {
-		this.levelNum = levelNum;
+	public Level(Game g, int levelNum, int startingX) {
+		this.game = g;
+
+		if (levelNum > Constants.MAX_LEVEL)
+			this.levelNum = 1;
+		else
+			this.levelNum = levelNum;
+
 		this.xPosition = startingX;
 	}
 	
@@ -46,7 +55,10 @@ public class Level {
 
 		if (beat) {
 			altBeat++;
-			xPosition++;
+
+			if (game.getCurrentLevel().getLevelNumber() > 0) {
+				xPosition++;
+			}
 
 			setupLavaGlow = true;
 		}
@@ -107,12 +119,6 @@ public class Level {
 	}
 
 	public void render(GameContainer gc, Graphics g) {
-		/*
-		 * Reset background
-		 */
-		g.setColor(ColorDirector.getBackgroundColor());
-		g.fillRect(0, 0, Constants.GAME_WIDTH, Constants.GAME_HEIGHT);
-
 		Point temp = new Point(0, 0);
 		/*
 		 * Draw tiles with scaling - focused on the player.
@@ -174,6 +180,10 @@ public class Level {
 
 	public void setXPosition(int newX) {
 		xPosition = newX;
+	}
+
+	public int getWidth() {
+		return lvlWidth;
 	}
 
 	public boolean isCollidable(int x, int y) {

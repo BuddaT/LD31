@@ -14,23 +14,23 @@ public class TileLavaGlowEffect extends TileEffect {
 	public TileLavaGlowEffect(int tileX, int tileY, int duration) {
 		super(tileX, tileY, duration);
 		
-		glowColor = new Color(ColorDirector.getPrimary(0));
-		backColor = new Color(255, 255, 255);
+		glowColor = new Color(ColorDirector.getSecondary(0));
+		backColor = new Color(ColorDirector.getPrimary(0));
 	}
 
 	public void render(Graphics g, int playerX) {
 		int scaledX = Level.getScaledX(playerX, getX());
 		int scaledWidth = Level.getScaledX(playerX, getX() + 1) - scaledX;
 
-		backColor.a = 1.0f - getRemaining() * 2;
-		g.setColor(backColor);
-		g.fillOval(scaledX + scaledWidth / 6, getY() * Constants.TILE_WIDTH
-				+ Constants.TILE_WIDTH / 6, scaledWidth / 1.5f,
-				Constants.TILE_WIDTH / 1.5f);
-
 		glowColor.a = 1.0f - getRemaining() * 2;
 		g.setColor(glowColor);
-		g.fillOval(scaledX + scaledWidth / 4, getY() * Constants.TILE_WIDTH
+		g.fillRect(scaledX + scaledWidth / 4, getY() * Constants.TILE_WIDTH
+				+ Constants.TILE_WIDTH / 4, scaledWidth / 2,
+				Constants.TILE_WIDTH / 2);
+
+		backColor.a = 1.0f - getRemaining() * 2;
+		g.setColor(backColor);
+		g.drawRect(scaledX + scaledWidth / 4, getY() * Constants.TILE_WIDTH
 				+ Constants.TILE_WIDTH / 4, scaledWidth / 2,
 				Constants.TILE_WIDTH / 2);
 	}

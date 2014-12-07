@@ -27,7 +27,7 @@ public class Player {
 
 	private static final int MAX_HEALTH = 100;
 
-	private final Level level;
+	private Level level;
 
 	private int x;
 	private int y;
@@ -69,6 +69,10 @@ public class Player {
 		return y;
 	}
 	
+	public void setLevel(Level newLevel) {
+		this.level = newLevel;
+	}
+
 	public Direction getCurrentDir() {
 		return currentDir;
 	}
