@@ -16,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class MusicDirector implements MusicListener, Runnable {
 
+	public static final int MAX_VOLUME = 10;
 	private static final Map<String, Integer> BEATS_PER_MINUTE;
 	private static final Map<String, Music> MUSICS;
 	/**
@@ -69,6 +70,7 @@ public class MusicDirector implements MusicListener, Runnable {
 	}
 
 	private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
+	private int volume = 10;
 	private volatile String currentMusicName;
 	private volatile int currentSlice;
 	private volatile Music currentMusic;
@@ -198,6 +200,22 @@ public class MusicDirector implements MusicListener, Runnable {
 	public void playTrack(String musicBaseName) {
 		if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
 			System.err.println("Couldn't add to music queue: " + musicBaseName);
+		}
+	}
+
+	public void increaseVolume() {
+		volume = Math.min(volume + 1, MAX_VOLUME);
+		setVolume(volume);
+	}
+
+	public void decreaseVolume() {
+		volume = Math.max(volume - 1, 0);
+		setVolume(volume);
+	}
+
+	public void setVolume(int volume) {
+		for (String musicName : MUSICS.keySet()) {
+			MUSICS.get(musicName).setVolume(volume / (float) MAX_VOLUME);
 		}
 	}
 
