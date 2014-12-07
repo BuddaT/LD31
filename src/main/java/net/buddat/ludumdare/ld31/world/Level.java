@@ -159,9 +159,7 @@ public class Level {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
 			g.fillRect(x, y, width, height);
 
-			// TODO: Replace with glow in sync with beat
-			g.setColor((altBeat % 2 == 0 ? ColorDirector.getAltSecondary()
-					: ColorDirector.getCurrentSecondary(ColorType.WALL)));
+			g.setColor(ColorDirector.getCurrentSecondary(ColorType.WALL));
 			g.drawRect(x, y, width, height);
 		}
 	}

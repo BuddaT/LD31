@@ -91,6 +91,10 @@ public class ColorDirector {
 	}
 
 	public static Color getCurrentSecondary(ColorType c) {
+		if (c == ColorType.WALL)
+			if (beatCount % 2 == 0)
+				return getAltSecondary();
+
 		return SECONDARY_COLOR_MAP.get(getColor(c));
 	}
 
