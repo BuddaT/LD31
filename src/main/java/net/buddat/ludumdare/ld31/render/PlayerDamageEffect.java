@@ -7,11 +7,11 @@ import org.newdawn.slick.Graphics;
  * Visual damage effect on the player, centred at x, y
  */
 public class PlayerDamageEffect extends PlayerEffect {
-	private static final Color COLOUR = Color.white;
+	private static final Color COLOUR = Color.red;
 	/**
 	 * Duration of the effect, in milliseconds
 	 */
-	private static final int DURATION = 2000;
+	private static final int DURATION = 150;
 
 	private static final int RADIUS = 10;
 

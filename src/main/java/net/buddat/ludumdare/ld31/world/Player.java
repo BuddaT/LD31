@@ -7,6 +7,8 @@ import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
 import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
+import net.buddat.ludumdare.ld31.render.PlayerDeathEffect;
+import net.buddat.ludumdare.ld31.render.PlayerEffect;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -34,7 +36,7 @@ public class Player {
 
 	private int health = MAX_HEALTH;
 
-	private final ArrayList<PlayerDamageEffect> effects = new ArrayList<PlayerDamageEffect>();
+	private final ArrayList<PlayerEffect> effects = new ArrayList<PlayerEffect>();
 
 	public enum Direction {
 		UP, RIGHT, DOWN, LEFT, NONE
@@ -81,6 +83,10 @@ public class Player {
 
 			addEffect(new PlayerDamageEffect(getRenderCentreX(),
 					getRenderCentreY(), scale));
+
+			if (newHealth <= 0)
+				addEffect(new PlayerDeathEffect(getRenderCentreX(),
+						getRenderCentreY(), scale));
 		}
 
 		health = newHealth;
@@ -99,7 +105,7 @@ public class Player {
 			currentDir = d;
 	}
 
-	public void addEffect(PlayerDamageEffect effect) {
+	public void addEffect(PlayerEffect effect) {
 		this.effects.add(effect);
 	}
 
@@ -137,8 +143,8 @@ public class Player {
 			setHealth(0);
 		}
 
-		for (Iterator<PlayerDamageEffect> iter = effects.iterator(); iter.hasNext();) {
-			PlayerDamageEffect effect = iter.next();
+		for (Iterator<PlayerEffect> iter = effects.iterator(); iter.hasNext();) {
+			PlayerEffect effect = iter.next();
 			effect.update(delta);
 			if (effect.hasExpired()) {
 				iter.remove();
@@ -161,12 +167,15 @@ public class Player {
 		int xPos = Level.getScaledX(level.getXPosition(), x);
 		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
 
-		g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
-		g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
-				* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
-				DEFAULT_HEIGHT, 20);
+		if (!isDead()) {
+			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
+			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
+					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
+					DEFAULT_HEIGHT, 20);
+		}
 
-		for (PlayerDamageEffect effect : effects) {
+		for (PlayerEffect effect : effects) {
+			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
 			effect.render(g);
 		}
 	}
