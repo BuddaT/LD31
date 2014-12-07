@@ -53,6 +53,12 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
+		try {
+			music = new MusicDirector(TITLE_TRACK, this);
+		} catch (SlickException e) {
+			e.printStackTrace();
+		}
+		new Thread(music).start();
 		reset();
 
 		backgroundImage = new Image("levels/background.png");
@@ -140,13 +146,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		currentLevel.init();
 		nextLevel = new Level(this, 1, -25);
 		nextLevel.init();
+		music.playTrack(TITLE_TRACK);
 
-		music = new MusicDirector(this);
-		try {
-			music.start(TITLE_TRACK);
-		} catch (SlickException e) {
-			e.printStackTrace();
-		}
 		player = new Player(40, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, player);
 

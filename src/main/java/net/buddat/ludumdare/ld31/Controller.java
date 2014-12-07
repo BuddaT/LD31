@@ -66,6 +66,10 @@ public class Controller {
 			musicDirector.randomTrack();
 		} else if (input.isKeyPressed(Input.KEY_SLASH)) {
 			musicDirector.nextSlice();
+		} else if (input.isKeyPressed(Input.KEY_ADD)) {
+			musicDirector.increaseVolume();
+		} else if (input.isKeyPressed(Input.KEY_SUBTRACT)) {
+			musicDirector.decreaseVolume();
 		} else if (input.isKeyPressed(Input.KEY_X)) {
 			// player.addEffect(new
 			// PlayerDamageEffect(player.getRenderCentreX(),

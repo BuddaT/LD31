@@ -14,8 +14,9 @@ import java.util.concurrent.BlockingQueue;
  * Loads and plays music, switching on demand and retrieving bpm information. Some tracks are divided into multiple
  * slices, which are designed to be played next to one another.
  */
-public class MusicDirector {
+public class MusicDirector implements MusicListener, Runnable {
 
+	public static final int MAX_VOLUME = 10;
 	private static final Map<String, Integer> BEATS_PER_MINUTE;
 	private static final Map<String, Music> MUSICS;
 	/**
@@ -55,65 +56,6 @@ public class MusicDirector {
 	}
 	private static final int QUEUE_SIZE = 10;
 
-	private final MusicDirectorListener listener;
-
-	/**
-	 * Current music track
-	 */
-	private MusicPlayer musicPlayer;
-
-	public MusicDirector(MusicDirectorListener listener) {
-		this.listener = listener;
-	}
-
-	public void start(String initialMusic) throws SlickException {
-		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
-			throw new SlickException("Unknown music " + initialMusic);
-		}
-		musicPlayer = new MusicPlayer(initialMusic, listener);
-		new Thread(musicPlayer).start();
-	}
-
-	/**
-	 * Stops the current music track and sets a new track, with looping.
-	 *
-	 * @param musicBaseName New track to set. If the track is sliced, base name for the slices.
-	 */
-	public void setTrack(String musicBaseName) {
-		musicPlayer.playTrack(musicBaseName);
-	}
-
-	/**
-	 * Sets music to a random track, for testing
-	 */
-	public void randomTrack() {
-		Object[] musicNames = BEATS_PER_MINUTE.keySet().toArray();
-		String musicName = (String) musicNames[(int) (Math.random() * musicNames.length)];
-		System.out.println("Setting to random track " + musicName);
-		setTrack(musicName);
-	}
-
-	/**
-	 * Progress to the next slice.
-	 */
-	public void nextSlice() {
-		musicPlayer.nextSlice();
-	}
-
-	/**
-	 * @return Current position of the music.
-	 */
-	public float getPosition() {
-		return musicPlayer.getCurrentPosition();
-	}
-
-	/**
-	 * @return Beats per minute of the music currently playing.
-	 */
-	public int getBpm() {
-		return BEATS_PER_MINUTE.get(musicPlayer.getCurrentMusicName());
-	}
-
 	private static String generateSliceName(String musicName, int number) {
 		return musicName + "_" + number + SLICE_EXT;
 	}
@@ -127,116 +69,170 @@ public class MusicDirector {
 		}
 	}
 
-	private class MusicPlayer implements MusicListener, Runnable {
-		private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
-		private volatile String currentMusicName;
-		private volatile int currentSlice;
-		private volatile Music currentMusic;
-		private final MusicDirectorListener listener;
+	private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
+	private int volume = 10;
+	private volatile String currentMusicName;
+	private volatile int currentSlice;
+	private volatile Music currentMusic;
 
-		MusicPlayer(String initialMusic, MusicDirectorListener listener) {
-			queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
-			this.listener = listener;
+	private final MusicDirectorListener listener;
+
+	public MusicDirector(String initialMusic, MusicDirectorListener listener) throws SlickException {
+		queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
+		currentMusicName = initialMusic;
+		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
+			throw new SlickException("Unknown music " + initialMusic);
 		}
+		this.listener = listener;
+	}
 
-		@Override
-		public void run() {
-			try {
-				boolean goToNext = false;
-				QueueAction action = queue.take();
-				while (action != null && action.type != QueueActionType.END) {
-					if (action.type == QueueActionType.LOOP) {
-						// Only want to loop if there are no other actions
-						if (goToNext) {
-							int oldSlice = currentSlice;
-							currentSlice = (currentSlice + 1) % SLICES.get(currentMusicName);
-							if (currentMusic != null) {
-								currentMusic.removeListener(this);
-							}
-							currentMusic = MUSICS.get(generateSliceName(currentMusicName, currentSlice));
-							currentMusic.addListener(this);
-							System.out.println("Playing next slice");
-							currentMusic.play();
-							listener.onSliceChanged(currentMusicName, oldSlice, currentSlice);
-							goToNext = false;
-						} else if (!queue.isEmpty()) {
-							continue;
-						} else if (currentMusic == null) {
-							System.err.println("Null music when LOOP requested");
-						} else {
-							currentMusic.play();
-						}
-					} else if (action.type == QueueActionType.PLAY) {
-						goToNext = false;
-						String oldTrack = "";
-						float oldPosition = 0;
-						int oldBpm = 0;
+	/**
+	 * Stops the current music track and sets a new track, with looping.
+	 *
+	 * @param musicBaseName New track to set. If the track is sliced, base name for the slices.
+	 */
+	public void setTrack(String musicBaseName) {
+		playTrack(musicBaseName);
+	}
+
+	/**
+	 * Sets music to a random track, for testing
+	 */
+	public void randomTrack() {
+		Object[] musicNames = BEATS_PER_MINUTE.keySet().toArray();
+		String musicName = (String) musicNames[(int) (Math.random() * musicNames.length)];
+		System.out.println("Setting to random track " + musicName);
+		setTrack(musicName);
+	}
+
+	/**
+	 * @return Current position of the music.
+	 */
+	public float getPosition() {
+		return currentMusic.getPosition();
+	}
+
+	/**
+	 * @return Beats per minute of the music currently playing.
+	 */
+	public int getBpm() {
+		return BEATS_PER_MINUTE.get(getCurrentMusicName());
+	}
+
+	@Override
+	public void run() {
+		try {
+			boolean goToNext = false;
+			QueueAction action = queue.take();
+			while (action != null && action.type != QueueActionType.END) {
+				if (action.type == QueueActionType.LOOP) {
+					// Only want to loop if there are no other actions
+					if (goToNext) {
+						int oldSlice = currentSlice;
+						currentSlice = (currentSlice + 1) % SLICES.get(currentMusicName);
 						if (currentMusic != null) {
 							currentMusic.removeListener(this);
-							oldTrack = currentMusicName;
-							oldPosition = currentMusic.getPosition();
-							oldBpm = BEATS_PER_MINUTE.get(currentMusicName);
 						}
-						currentMusicName = action.details;
-						if (SLICES.containsKey(currentMusicName)) {
-							currentSlice = 0;
-							currentMusic = MUSICS.get(generateSliceName(currentMusicName, 0));
-						} else {
-							currentSlice = NO_SLICE;
-							currentMusic = MUSICS.get(currentMusicName);
-						}
+						currentMusic = MUSICS.get(generateSliceName(currentMusicName, currentSlice));
 						currentMusic.addListener(this);
+						System.out.println("Playing next slice");
 						currentMusic.play();
-						listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicName, BEATS_PER_MINUTE.get(currentMusicName));
-					} else if (action.type == QueueActionType.NEXT) {
-						// On the next loop notification,
-						if (goToNext) {
-							System.out.println("Next slice already queued for playing");
-						} else if (SLICES.containsKey(currentMusicName)) {
-							System.out.println("Next slice queued for playing, waiting for end of current slice");
-							goToNext = true;
-						} else {
-							System.err.println("Can't take next slice, track " + currentMusicName + " isn't sliced");
-						}
+						listener.onSliceChanged(currentMusicName, oldSlice, currentSlice);
+						goToNext = false;
+					} else if (!queue.isEmpty()) {
+						continue;
+					} else if (currentMusic == null) {
+						System.err.println("Null music when LOOP requested");
+					} else {
+						currentMusic.play();
 					}
-					action = queue.take();
+				} else if (action.type == QueueActionType.PLAY) {
+					goToNext = false;
+					String oldTrack = "";
+					float oldPosition = 0;
+					int oldBpm = 0;
+					if (currentMusic != null) {
+						currentMusic.removeListener(this);
+						oldTrack = currentMusicName;
+						oldPosition = currentMusic.getPosition();
+						oldBpm = BEATS_PER_MINUTE.get(currentMusicName);
+					}
+					currentMusicName = action.details;
+					if (SLICES.containsKey(currentMusicName)) {
+						currentSlice = 0;
+						currentMusic = MUSICS.get(generateSliceName(currentMusicName, 0));
+					} else {
+						currentSlice = NO_SLICE;
+						currentMusic = MUSICS.get(currentMusicName);
+					}
+					currentMusic.addListener(this);
+					currentMusic.play();
+					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicName, BEATS_PER_MINUTE.get(currentMusicName));
+				} else if (action.type == QueueActionType.NEXT) {
+					// On the next loop notification,
+					if (goToNext) {
+						System.out.println("Next slice already queued for playing");
+					} else if (SLICES.containsKey(currentMusicName)) {
+						System.out.println("Next slice queued for playing, waiting for end of current slice");
+						goToNext = true;
+					} else {
+						System.err.println("Can't take next slice, track " + currentMusicName + " isn't sliced");
+					}
 				}
-				if (currentMusic != null) {
-					currentMusic.removeListener(this);
-				}
-				System.out.println("End of music");
-			} catch (InterruptedException e) {
-				System.err.println("Interrupted while waiting on music queue");
+				action = queue.take();
 			}
-		}
-
-		public void nextSlice() {
-			queue.offer(new QueueAction(QueueActionType.NEXT));
-		}
-
-		public void playTrack(String musicBaseName) {
-			if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
-				System.err.println("Couldn't add to music queue: " + musicBaseName);
+			if (currentMusic != null) {
+				currentMusic.removeListener(this);
 			}
+			System.out.println("End of music");
+		} catch (InterruptedException e) {
+			System.err.println("Interrupted while waiting on music queue");
 		}
+	}
 
-		@Override
-		public void musicEnded(Music music) {
-			queue.offer(new QueueAction(QueueActionType.LOOP, null));
-		}
+	/**
+	 * Progress to the next slice.
+	 */
+	public void nextSlice() {
+		queue.offer(new QueueAction(QueueActionType.NEXT));
+	}
 
-		@Override
-		public void musicSwapped(Music music, Music music2) {
-			// do nothing
+	public void playTrack(String musicBaseName) {
+		if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
+			System.err.println("Couldn't add to music queue: " + musicBaseName);
 		}
+	}
 
-		public String getCurrentMusicName() {
-			return currentMusicName;
-		}
+	public void increaseVolume() {
+		volume = Math.min(volume + 1, MAX_VOLUME);
+		setVolume(volume);
+	}
 
-		public float getCurrentPosition() {
-			return currentMusic.getPosition();
+	public void decreaseVolume() {
+		volume = Math.max(volume - 1, 0);
+		setVolume(volume);
+	}
+
+	public void setVolume(int volume) {
+		for (String musicName : MUSICS.keySet()) {
+			MUSICS.get(musicName).setVolume(volume / (float) MAX_VOLUME);
 		}
+	}
+
+	@Override
+	public void musicEnded(Music music) {
+		if (!queue.offer(new QueueAction(QueueActionType.LOOP, null))) {
+			System.err.println("Couldn't offer end loop, queue is full");
+		}
+	}
+
+	@Override
+	public void musicSwapped(Music music, Music music2) {
+		// do nothing
+	}
+
+	public String getCurrentMusicName() {
+		return currentMusicName;
 	}
 
 	private enum QueueActionType {
