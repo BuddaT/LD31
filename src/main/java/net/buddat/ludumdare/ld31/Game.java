@@ -11,6 +11,7 @@ import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 public class Game extends BasicGame implements MusicDirectorListener {
@@ -27,6 +28,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	private Player player;
 
+	private Image backgroundImage;
+
 	public Game(String title) {
 		super(title);
 	}
@@ -34,6 +37,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	int sinceLast = 0;
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
+		backgroundImage.draw(0, 0);
+
 		if (lastLevel != null)
 			lastLevel.render(gc, g);
 
@@ -57,6 +62,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		music.start(TITLE_TRACK);
 		player = new Player(40, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, player);
+
+		backgroundImage = new Image("levels/background.png");
 	}
 
 	@Override

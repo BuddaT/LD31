@@ -21,11 +21,11 @@ public class Level {
 
 	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 /*- Constants.TILE_WIDTH / 2*/);
 	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.35f;
-
+	
 	private static final int SCALE_LIMIT_DIST = 44;
 	private static final int scaledXDistRight = getScaledX(0, SCALE_LIMIT_DIST);
 	private static final int scaledXDistLeft = getScaledX(SCALE_LIMIT_DIST, 0);
-
+	
 	private static final int VIEW_RANGE = 80;
 
 	private final int levelNum;
