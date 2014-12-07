@@ -77,6 +77,7 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	public MusicDirector(String initialMusic, MusicDirectorListener listener) throws SlickException {
 		queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
+		currentMusicName = initialMusic;
 		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
 			throw new SlickException("Unknown music " + initialMusic);
 		}
