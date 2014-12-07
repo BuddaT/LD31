@@ -21,6 +21,11 @@ public class Level {
 
 	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 /*- Constants.TILE_WIDTH / 2*/);
 	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.35f;
+
+	private static final int SCALE_LIMIT_DIST = 44;
+	private static final int scaledXDistRight = getScaledX(0, SCALE_LIMIT_DIST);
+	private static final int scaledXDistLeft = getScaledX(SCALE_LIMIT_DIST, 0);
+
 	private static final int VIEW_RANGE = 80;
 
 	private final int levelNum;
@@ -167,7 +172,7 @@ public class Level {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
 			g.fillRect(x, y, width, height);
 
-			if (x < scaledX40Left || x > scaledX40Right)
+			if (x < scaledXDistLeft || x > scaledXDistRight)
 				return;
 
 			g.setColor(ColorDirector.getCurrentSecondary(ColorType.WALL));
@@ -200,18 +205,15 @@ public class Level {
 		return tile != null && tile.isCollidable();
 	}
 
-	private static final int scaledX40Right = getScaledX(0, 40);
-	private static final int scaledX40Left = getScaledX(40, 0);
-
 	public static int getScaledX(int xPosition, int tileX) {
 		int dist = Math.abs(xPosition - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2f;
 
-		if (dist > 40)
+		if (dist > SCALE_LIMIT_DIST)
 			if (xPosition < tileX)
-				return scaledX40Right + (dist - 40);
+				return scaledXDistRight + (dist - SCALE_LIMIT_DIST);
 			else
-				return scaledX40Left - (dist - 40);
+				return scaledXDistLeft - (dist - SCALE_LIMIT_DIST);
 
 		if (xPosition < tileX)
 			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);
