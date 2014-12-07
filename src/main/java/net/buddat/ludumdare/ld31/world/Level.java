@@ -19,8 +19,8 @@ import org.newdawn.slick.SlickException;
 
 public class Level {
 
-	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 - Constants.TILE_WIDTH / 2);
-	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.525f;
+	private static final int CENTER_TILE_X = (Constants.GAME_WIDTH / 2 /*- Constants.TILE_WIDTH / 2*/);
+	private static final float TILE_SCALE_FACTOR = 1f / Constants.TILE_WIDTH / 2.45f;
 	private static final int VIEW_RANGE = 50;
 
 	private final int levelNum;
@@ -120,6 +120,9 @@ public class Level {
 
 	public void render(GameContainer gc, Graphics g) {
 		Point temp = new Point(0, 0);
+
+		drawEdge(g, 0, 1);
+		drawEdge(g, Constants.GAME_WIDTH - 1, 1);
 		/*
 		 * Draw tiles with scaling - focused on the player.
 		 */
@@ -153,11 +156,19 @@ public class Level {
 		setupLavaGlow = false;
 	}
 
+	private void drawEdge(Graphics g, int x, int width) {
+		g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
+		g.fillRect(x, 0, width, Constants.GAME_HEIGHT);
+	}
+
 	private void drawTile(Tile t, Graphics g, int x, int y, int width,
 			int height) {
 		if (t.isCollidable()) {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
 			g.fillRect(x, y, width, height);
+
+			if (x < 2 || x > Constants.GAME_WIDTH - 2)
+				return;
 
 			g.setColor(ColorDirector.getCurrentSecondary(ColorType.WALL));
 			g.drawRect(x, y, width, height);
