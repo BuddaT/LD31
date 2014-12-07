@@ -4,6 +4,7 @@ import net.buddat.ludumdare.ld31.music.BeatCalculator;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
 import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.world.Player;
+
 import org.newdawn.slick.Input;
 
 /**
@@ -39,6 +40,10 @@ public class Controller {
 			player.setY(player.getY() - 1);
 		} else if (input.isKeyPressed(Input.KEY_DOWN)) {
 			player.setY(player.getY() + 1);
+		} else if (input.isKeyPressed(Input.KEY_LEFT)) {
+			player.setX(player.getX() - 1);
+		} else if (input.isKeyPressed(Input.KEY_RIGHT)) {
+			player.setX(player.getX() + 1);
 		} else if (input.isKeyPressed(Input.KEY_PERIOD)) {
 			musicDirector.randomTrack();
 		} else if (input.isKeyPressed(Input.KEY_SLASH)) {

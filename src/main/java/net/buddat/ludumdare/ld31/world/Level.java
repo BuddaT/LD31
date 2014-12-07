@@ -24,27 +24,21 @@ public class Level {
 
 	private final int levelNum;
 	private int lvlWidth, lvlHeight;
+	private int xPosition;
 
 	private Image collisionsLayer, objectsLayer;
 
 	private HashMap<Point, Tile> tileMap;
 
-	private Color collisionColor = ColorDirector
-			.getCurrentPrimary(ColorType.WALL);
-	private Color secondaryCollisionColor = ColorDirector
-			.getCurrentSecondary(ColorType.WALL);
-	private final Color altSecondaryColor = ColorDirector.getAltSecondary();
-
 	private int altBeat = 0;
-	private final int beatsPerChange;
 	private int bpm;
 
 	private boolean setupLavaGlow = false;
 	private ArrayList<TileEffect> tileEffectList;
 
-	public Level(int levelNum, int beatsPerChange) {
+	public Level(int levelNum, int startingX) {
 		this.levelNum = levelNum;
-		this.beatsPerChange = beatsPerChange;
+		this.xPosition = startingX;
 	}
 	
 	public void update(int delta, boolean beat, int bpm) {
@@ -52,14 +46,9 @@ public class Level {
 
 		if (beat) {
 			altBeat++;
-			// if (altBeat % 2 == 0)
-				setupLavaGlow = true;
+			xPosition++;
 
-			if (altBeat % beatsPerChange == 0) {
-				collisionColor = ColorDirector.getRandomPrimary(ColorType.WALL);
-				secondaryCollisionColor = ColorDirector
-						.getCurrentSecondary(ColorType.WALL);
-			}
+			setupLavaGlow = true;
 		}
 
 		ArrayList<TileEffect> toRemove = new ArrayList<TileEffect>();
@@ -117,7 +106,7 @@ public class Level {
 
 	}
 
-	public void render(GameContainer gc, Graphics g, int playerX) {
+	public void render(GameContainer gc, Graphics g) {
 		/*
 		 * Reset background
 		 */
@@ -128,7 +117,7 @@ public class Level {
 		/*
 		 * Draw tiles with scaling - focused on the player.
 		 */
-		for (int x = playerX - VIEW_RANGE; x < playerX + VIEW_RANGE; x++) {
+		for (int x = xPosition - VIEW_RANGE; x < xPosition + VIEW_RANGE; x++) {
 			for (int y = 0; y < lvlHeight; y++) {
 				temp.setLocation(x, y);
 
@@ -144,8 +133,8 @@ public class Level {
 					}
 				}
 
-				int xPos = getScaledX(playerX, x);
-				int width = getScaledX(playerX, x + 1) - xPos;
+				int xPos = getScaledX(xPosition, x);
+				int width = getScaledX(xPosition, x + 1) - xPos;
 				drawTile(t, g, xPos, y * Constants.TILE_WIDTH, width,
 						Constants.TILE_WIDTH);
 			}
@@ -153,7 +142,7 @@ public class Level {
 
 		for (TileEffect t : tileEffectList) {
 			if (t instanceof TileLavaGlowEffect)
-				((TileLavaGlowEffect) t).render(g, playerX);
+				((TileLavaGlowEffect) t).render(g, xPosition);
 		}
 		setupLavaGlow = false;
 	}
@@ -161,12 +150,12 @@ public class Level {
 	private void drawTile(Tile t, Graphics g, int x, int y, int width,
 			int height) {
 		if (t.isCollidable()) {
-			g.setColor(collisionColor);
+			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
 			g.fillRect(x, y, width, height);
 
 			// TODO: Replace with glow in sync with beat
-			g.setColor((altBeat % 2 == 0 ? altSecondaryColor
-					: secondaryCollisionColor));
+			g.setColor((altBeat % 2 == 0 ? ColorDirector.getAltSecondary()
+					: ColorDirector.getCurrentSecondary(ColorType.WALL)));
 			g.drawRect(x, y, width, height);
 		}
 	}
@@ -179,15 +168,23 @@ public class Level {
 		return (lvlHeight + 1) / 2;
 	}
 
+	public int getXPosition() {
+		return xPosition;
+	}
+
+	public void setXPosition(int newX) {
+		xPosition = newX;
+	}
+
 	public boolean isCollidable(int x, int y) {
 		Tile tile = tileMap.get(new Point(x, y));
 		return tile != null && tile.isCollidable();
 	}
 
-	public static int getScaledX(int playerX, int tileX) {
-		int dist = Math.abs(playerX - tileX);
+	public static int getScaledX(int xPosition, int tileX) {
+		int dist = Math.abs(xPosition - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2;
-		if (playerX < tileX)
+		if (xPosition < tileX)
 			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);
 		else
 			return CENTER_TILE_X - (int) (pos * Constants.TILE_WIDTH);

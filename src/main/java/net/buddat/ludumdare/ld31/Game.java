@@ -34,13 +34,13 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	int sinceLast = 0;
 	@Override
 	public void render(GameContainer gc, Graphics g) throws SlickException {
-		l0.render(gc, g, player.getX());
+		l0.render(gc, g);
 		player.render(gc, g);
 	}
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		l0 = new Level(0, 8);
+		l0 = new Level(0, START_X);
 		l0.init();
 
 		music = new MusicDirector(TITLE_TRACK, this);
@@ -55,10 +55,12 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			if (l0.isCollidable(player.getX() + 1, player.getY())) {
 				// game over
 			} else {
-				player.setX(player.getX() + 1);
+				// player.setX(player.getX() + 1);
 				sinceLast = 0;
 				l0.update(delta, true, music.getBpm());
 			}
+
+			ColorDirector.update(delta);
 		} else {
 			l0.update(delta, false, music.getBpm());
 		}

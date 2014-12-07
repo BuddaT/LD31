@@ -18,6 +18,8 @@ public class ColorDirector {
 
 	private static int currentWallColor = 0, currentPlayerColor = 1;
 
+	private static int beatCount = 0;
+
 	private static Random colorRandom;
 
 	static {
@@ -54,7 +56,16 @@ public class ColorDirector {
 		colorRandom = new Random(System.currentTimeMillis());
 	}
 
-	public static Color getRandomPrimary(ColorType c) {
+	public static void update(int delta) {
+		beatCount++;
+
+		if (beatCount % 2 == 0)
+			getNextPrimary(ColorType.PLAYER);
+		if (beatCount % 4 == 0)
+			getRandomPrimary(ColorType.WALL);
+	}
+
+	private static Color getRandomPrimary(ColorType c) {
 		int nextColor = getColor(c);
 		while (nextColor == getColor(c))
 			nextColor = colorRandom.nextInt(PRIMARY_COLOR_MAP.size());
@@ -64,7 +75,7 @@ public class ColorDirector {
 		return getCurrentPrimary(c);
 	}
 	
-	public static Color getNextPrimary(ColorType c) {
+	private static Color getNextPrimary(ColorType c) {
 		setColor(c, getColor(c) + 1);
 		Color col = getCurrentPrimary(c);
 		if (col == null) {

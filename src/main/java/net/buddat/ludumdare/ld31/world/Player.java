@@ -1,20 +1,23 @@
 package net.buddat.ludumdare.ld31.world;
 
-import net.buddat.ludumdare.ld31.constants.Constants;
-
-import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import net.buddat.ludumdare.ld31.ColorDirector;
+import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
+import net.buddat.ludumdare.ld31.constants.Constants;
+import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
+
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 
 /**
  * Player information and behaviour
  */
 public class Player {
-	private static final int DEFAULT_WIDTH = 15;
+	
+	private static final float DEFAULT_WIDTH_RATIO = 0.75f;
+	private static final int DEFAULT_WIDTH = (int) (Constants.TILE_WIDTH * DEFAULT_WIDTH_RATIO);
 	private static final int DEFAULT_HEIGHT = 15;
 	private static final int X_OFFSET = Constants.GAME_WIDTH / 2
 			- DEFAULT_WIDTH / 2;
@@ -24,8 +27,8 @@ public class Player {
 	private final Level level;
 	private int x;
 	private int y;
-	private int health = MAX_HEALTH;
-	private ArrayList<PlayerDamageEffect> effects = new ArrayList<PlayerDamageEffect>();
+	private final int health = MAX_HEALTH;
+	private final ArrayList<PlayerDamageEffect> effects = new ArrayList<PlayerDamageEffect>();
 
 	public Player(int x, int y, Level level) {
 		this.x = x;
@@ -74,9 +77,13 @@ public class Player {
 	}
 
 	public void render(GameContainer gc, Graphics g) {
-		g.setColor(Color.blue);
-		g.fillOval(X_OFFSET, Y_OFFSET + y * Constants.TILE_WIDTH,
-				DEFAULT_WIDTH, DEFAULT_HEIGHT, 20);
+		int xPos = Level.getScaledX(level.getXPosition(), x);
+		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
+
+		g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
+		g.fillOval(xPos, Y_OFFSET + y * Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
+				DEFAULT_HEIGHT, 20);
+
 		for (PlayerDamageEffect effect : effects) {
 			effect.render(g);
 		}
