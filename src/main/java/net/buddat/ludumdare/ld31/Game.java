@@ -52,19 +52,15 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
 		if (sinceLast > 1000 * 60 / music.getBpm()) {
-			if (l0.isCollidable(player.getX() + 1, player.getY())) {
-				// game over
-			} else {
-				// player.setX(player.getX() + 1);
-				sinceLast = 0;
-				l0.update(delta, true, music.getBpm());
-			}
+			sinceLast = 0;
 
 			ColorDirector.update(delta);
+			l0.update(delta, true, music.getBpm());
+			player.update(delta, true, music.getBpm());
 		} else {
 			l0.update(delta, false, music.getBpm());
+			player.update(delta, false, music.getBpm());
 		}
-		player.update(delta);
 
 		controller.handleInput(gc.getInput());
 	}

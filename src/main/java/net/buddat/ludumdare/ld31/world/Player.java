@@ -19,16 +19,31 @@ public class Player {
 	private static final float DEFAULT_WIDTH_RATIO = 0.75f;
 	private static final int DEFAULT_WIDTH = (int) (Constants.TILE_WIDTH * DEFAULT_WIDTH_RATIO);
 	private static final int DEFAULT_HEIGHT = 15;
-	private static final int X_OFFSET = Constants.GAME_WIDTH / 2
+
+	private static final int X_OFFSET = Constants.TILE_WIDTH / 2
 			- DEFAULT_WIDTH / 2;
-	private static final int Y_OFFSET = Constants.TILE_WIDTH / 2 - DEFAULT_HEIGHT / 2;
+	private static final int Y_OFFSET = Constants.TILE_WIDTH / 2
+			- DEFAULT_HEIGHT / 2;
+
 	private static final int MAX_HEALTH = 100;
 
 	private final Level level;
+
 	private int x;
 	private int y;
+
 	private final int health = MAX_HEALTH;
+
 	private final ArrayList<PlayerDamageEffect> effects = new ArrayList<PlayerDamageEffect>();
+
+	public enum Direction {
+		UP, RIGHT, DOWN, LEFT, NONE
+	};
+
+	private Direction currentDir = Direction.NONE;
+	private int dirCooldown = 0;
+
+	private int sinceLast = 0;
 
 	public Player(int x, int y, Level level) {
 		this.x = x;
@@ -54,11 +69,48 @@ public class Player {
 		return y;
 	}
 	
+	public Direction getCurrentDir() {
+		return currentDir;
+	}
+
+	public void setDirection(Direction d) {
+		if (dirCooldown < 0)
+			currentDir = d;
+	}
+
 	public void addEffect(PlayerDamageEffect effect) {
 		this.effects.add(effect);
 	}
 
-	public void update(int delta) {
+	public void update(int delta, boolean beat, int bpm) {
+		sinceLast += delta;
+		dirCooldown -= delta;
+		if (sinceLast > 1000 * 60 / (bpm * 2)) {
+			sinceLast = 0;
+
+			switch (currentDir) {
+				case UP:
+					y--;
+					break;
+				case DOWN:
+					y++;
+					break;
+				case LEFT:
+					x--;
+					break;
+				case RIGHT:
+					x++;
+					break;
+				case NONE:
+					break;
+			}
+
+			if (currentDir != Direction.NONE) {
+				currentDir = Direction.NONE;
+				dirCooldown = 1000 * 60 / (bpm * 4);
+			}
+		}
+
 		for (Iterator<PlayerDamageEffect> iter = effects.iterator(); iter.hasNext();) {
 			PlayerDamageEffect effect = iter.next();
 			effect.update(delta);
@@ -81,7 +133,8 @@ public class Player {
 		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
 
 		g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
-		g.fillOval(xPos, Y_OFFSET + y * Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
+		g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
+				* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 				DEFAULT_HEIGHT, 20);
 
 		for (PlayerDamageEffect effect : effects) {
