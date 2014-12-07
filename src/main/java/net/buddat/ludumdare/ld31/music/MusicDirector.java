@@ -60,20 +60,17 @@ public class MusicDirector {
 	/**
 	 * Current music track
 	 */
-	private final BlockingQueue<QueueAction> queue;
 	private MusicPlayer musicPlayer;
 
 	public MusicDirector(MusicDirectorListener listener) {
 		this.listener = listener;
-		this.queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
 	}
 
 	public void start(String initialMusic) throws SlickException {
 		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
 			throw new SlickException("Unknown music " + initialMusic);
 		}
-		queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
-		musicPlayer = new MusicPlayer(queue, listener);
+		musicPlayer = new MusicPlayer(initialMusic, listener);
 		new Thread(musicPlayer).start();
 	}
 
@@ -83,15 +80,11 @@ public class MusicDirector {
 	 * @param musicBaseName New track to set. If the track is sliced, base name for the slices.
 	 */
 	public void setTrack(String musicBaseName) {
-		if (!musicPlayer.queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
-			System.err.println("Couldn't add to music queue: " + musicBaseName);
-		}
+		musicPlayer.playTrack(musicBaseName);
 	}
 
 	/**
 	 * Sets music to a random track, for testing
-	 *
-	 * @throws SlickException
 	 */
 	public void randomTrack() {
 		Object[] musicNames = BEATS_PER_MINUTE.keySet().toArray();
@@ -104,7 +97,7 @@ public class MusicDirector {
 	 * Progress to the next slice.
 	 */
 	public void nextSlice() {
-		musicPlayer.queue.offer(new QueueAction(QueueActionType.NEXT));
+		musicPlayer.nextSlice();
 	}
 
 	/**
@@ -135,14 +128,14 @@ public class MusicDirector {
 	}
 
 	private class MusicPlayer implements MusicListener, Runnable {
-		private final BlockingQueue<QueueAction> queue;
+		private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
 		private volatile String currentMusicName;
 		private volatile int currentSlice;
 		private volatile Music currentMusic;
 		private final MusicDirectorListener listener;
 
-		MusicPlayer(BlockingQueue<QueueAction> queue, MusicDirectorListener listener) {
-			this.queue = queue;
+		MusicPlayer(String initialMusic, MusicDirectorListener listener) {
+			queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
 			this.listener = listener;
 		}
 
@@ -218,6 +211,12 @@ public class MusicDirector {
 			queue.offer(new QueueAction(QueueActionType.NEXT));
 		}
 
+		public void playTrack(String musicBaseName) {
+			if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
+				System.err.println("Couldn't add to music queue: " + musicBaseName);
+			}
+		}
+
 		@Override
 		public void musicEnded(Music music) {
 			queue.offer(new QueueAction(QueueActionType.LOOP, null));
@@ -238,9 +237,21 @@ public class MusicDirector {
 	}
 
 	private enum QueueActionType {
+		/**
+		 * Play a new track, starting immediately
+		 */
 		PLAY,
+		/**
+		 * Loop the current track again
+		 */
 		LOOP,
+		/**
+		 * Play the next slice in the track
+		 */
 		NEXT,
+		/**
+		 * End play
+		 */
 		END
 	}
 
