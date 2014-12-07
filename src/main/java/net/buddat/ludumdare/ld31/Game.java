@@ -25,10 +25,13 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	private final BeatCalculator beatCalculator = new BeatCalculator(TOLERANCE);
 
 	private Level currentLevel, lastLevel, nextLevel;
+	private Title title;
 
 	private Player player;
 
 	private Image backgroundImage;
+
+	private boolean needsReset = false;
 
 	public Game(String title) {
 		super(title);
@@ -49,6 +52,9 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			nextLevel.render(gc, g);
 
 		player.render(gc, g);
+
+		if (title.isVisible())
+			title.render(g);
 	}
 
 	@Override
@@ -59,7 +65,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			e.printStackTrace();
 		}
 		new Thread(music).start();
-		reset();
+		reset(gc);
 
 		backgroundImage = new Image("levels/background.png");
 	}
@@ -67,36 +73,44 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	@Override
 	public void update(GameContainer gc, int delta) throws SlickException {
 		sinceLast += delta;
-		if (sinceLast > 1000 * 60 / music.getBpm()) {
+		boolean onBeat = sinceLast > 1000 * 60 / music.getBpm();
+
+		if (onBeat) {
 			sinceLast = 0;
-
 			ColorDirector.update(delta);
+		}
 
+		if (title.isMovedOut()) {
 			if (!player.isDead()) {
 				if (lastLevel != null)
-					lastLevel.update(delta, true, music.getBpm());
+					lastLevel.update(delta, onBeat, music.getBpm());
 				if (currentLevel != null)
-					currentLevel.update(delta, true, music.getBpm());
+					currentLevel.update(delta, onBeat, music.getBpm());
 				if (nextLevel != null)
-					nextLevel.update(delta, true, music.getBpm());
+					nextLevel.update(delta, onBeat, music.getBpm());
 			}
 
-			player.update(delta, true, music.getBpm());
-		} else {
-			if (lastLevel != null)
-				lastLevel.update(delta, false, music.getBpm());
-			if (currentLevel != null)
-				currentLevel.update(delta, false, music.getBpm());
-			if (nextLevel != null)
-				nextLevel.update(delta, false, music.getBpm());
+			player.update(delta, onBeat, music.getBpm());
+		}
 
-			player.update(delta, false, music.getBpm());
-			if (player.getX() > currentLevel.getWidth()) {
-				nextLevel(true);
-			}
+		if (title.isVisible())
+			title.update(delta, onBeat, (lastLevel == null ? currentLevel
+					: lastLevel));
+
+		if (player.getX() > currentLevel.getWidth()) {
+			nextLevel(true);
 		}
 
 		controller.handleInput(gc.getInput());
+
+		if (needsReset) {
+			reset(gc);
+			needsReset = false;
+		}
+	}
+
+	public Title getTitleScreen() {
+		return title;
 	}
 
 	public Level getCurrentLevel() {
@@ -140,17 +154,25 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		sinceLast = 0;
 	}
 
-	public void reset() {
+	public void reset(GameContainer gc) {
 		lastLevel = null;
-		currentLevel = new Level(this, 0, 25);
+		currentLevel = new Level(this, 1, START_X);
 		currentLevel.init();
-		nextLevel = new Level(this, 1, -25);
+		nextLevel = new Level(this, 1, -currentLevel.getWidth() + START_X);
 		nextLevel.init();
+
 		music.playTrack(TITLE_TRACK);
 
-		player = new Player(40, currentLevel.getStartY(), currentLevel);
+		player = new Player(START_X, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, player);
+		title = new Title();
+
+		gc.getInput().clearKeyPressedRecord();
 
 		sinceLast = 0;
+	}
+
+	public void setNeedsReset(boolean b) {
+		needsReset = b;
 	}
 }

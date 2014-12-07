@@ -28,14 +28,26 @@ public class Controller {
 	}
 
 	public void handleInput(Input input) {
-		if (game.getCurrentLevel().getLevelNumber() == 0) {
+		if (!game.getTitleScreen().isMoving()
+				&& !game.getTitleScreen().isMovedOut()) {
 			if (input.isKeyPressed(Input.KEY_ENTER)) {
-				game.nextLevel(true);
+				if (game.getTitleScreen().getSelected() == Title.START)
+					game.getTitleScreen().setStartMoving(true);
+				else if (game.getTitleScreen().getSelected() == Title.QUIT)
+					System.exit(0);
 			}
+
+			if (input.isKeyPressed(Input.KEY_UP)) {
+				game.getTitleScreen().setSelected(-1);
+			} else if (input.isKeyPressed(Input.KEY_DOWN)) {
+				game.getTitleScreen().setSelected(1);
+			}
+
+			return;
 		}
 
 		if (input.isKeyPressed(Input.KEY_ESCAPE))
-			game.reset();
+			game.setNeedsReset(true);
 
 		if (input.isKeyDown(Input.KEY_SPACE)) {
 			if (!wasSpacePressed) {
