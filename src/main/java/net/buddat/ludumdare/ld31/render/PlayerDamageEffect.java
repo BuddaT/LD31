@@ -7,24 +7,29 @@ import org.newdawn.slick.Graphics;
  * Visual damage effect on the player, centred at x, y
  */
 public class PlayerDamageEffect extends PlayerEffect {
-	private static final Color COLOUR = Color.red;
+	private static final Color COLOUR = Color.white;
 	/**
 	 * Duration of the effect, in milliseconds
 	 */
-	private static final int DURATION = 200;
+	private static final int DURATION = 2000;
 
 	private static final int RADIUS = 10;
 
-	public PlayerDamageEffect(int x, int y) {
+	private final float scale;
+
+	public PlayerDamageEffect(int x, int y, float scale) {
 		super(x, y);
+		this.scale = scale;
 	}
 
 	@Override
 	public void render(Graphics g) {
 		if (!hasExpired()) {
 			g.setColor(COLOUR);
-			int radius = (int) Math.round((DURATION - getDurationCompleted()) * RADIUS / (double) DURATION);
-			g.drawOval(getX() - radius, getY() - radius, radius * 2, radius * 2, 20);
+			int radius = (int) Math.round((DURATION - getDurationCompleted())
+					* RADIUS / (double) DURATION);
+			g.drawOval(getX() - radius * scale, getY() - radius, radius * scale
+					* 2, radius * 2, 20);
 		}
 	}
 

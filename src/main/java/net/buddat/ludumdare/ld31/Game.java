@@ -53,15 +53,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	@Override
 	public void init(GameContainer gc) throws SlickException {
-		currentLevel = new Level(this, 0, 25);
-		currentLevel.init();
-		nextLevel = new Level(this, 1, -25);
-		nextLevel.init();
-
-		music = new MusicDirector(this);
-		music.start(TITLE_TRACK);
-		player = new Player(40, currentLevel.getStartY(), currentLevel);
-		controller = new Controller(this, music, player);
+		reset();
 
 		backgroundImage = new Image("levels/background.png");
 	}
@@ -74,12 +66,14 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 			ColorDirector.update(delta);
 
-			if (lastLevel != null)
-				lastLevel.update(delta, true, music.getBpm());
-			if (currentLevel != null)
-				currentLevel.update(delta, true, music.getBpm());
-			if (nextLevel != null)
-				nextLevel.update(delta, true, music.getBpm());
+			if (!player.isDead()) {
+				if (lastLevel != null)
+					lastLevel.update(delta, true, music.getBpm());
+				if (currentLevel != null)
+					currentLevel.update(delta, true, music.getBpm());
+				if (nextLevel != null)
+					nextLevel.update(delta, true, music.getBpm());
+			}
 
 			player.update(delta, true, music.getBpm());
 		} else {
@@ -137,6 +131,25 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 	@Override
 	public void onSliceChanged(String musicBaseName, int oldSlice, int newSlice) {
+		sinceLast = 0;
+	}
+
+	public void reset() {
+		lastLevel = null;
+		currentLevel = new Level(this, 0, 25);
+		currentLevel.init();
+		nextLevel = new Level(this, 1, -25);
+		nextLevel.init();
+
+		music = new MusicDirector(this);
+		try {
+			music.start(TITLE_TRACK);
+		} catch (SlickException e) {
+			e.printStackTrace();
+		}
+		player = new Player(40, currentLevel.getStartY(), currentLevel);
+		controller = new Controller(this, music, player);
+
 		sinceLast = 0;
 	}
 }

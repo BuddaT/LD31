@@ -32,7 +32,7 @@ public class Player {
 	private int x;
 	private int y;
 
-	private final int health = MAX_HEALTH;
+	private int health = MAX_HEALTH;
 
 	private final ArrayList<PlayerDamageEffect> effects = new ArrayList<PlayerDamageEffect>();
 
@@ -69,6 +69,23 @@ public class Player {
 		return y;
 	}
 	
+	public int getHealth() {
+		return health;
+	}
+
+	public void setHealth(int newHealth) {
+		if (newHealth < health) {
+			int scaleX = Level.getScaledX(level.getXPosition(), x);
+			int width = Level.getScaledX(level.getXPosition(), x + 1) - scaleX;
+			float scale = 1.0f / Constants.TILE_WIDTH * width;
+
+			addEffect(new PlayerDamageEffect(getRenderCentreX(),
+					getRenderCentreY(), scale));
+		}
+
+		health = newHealth;
+	}
+
 	public void setLevel(Level newLevel) {
 		this.level = newLevel;
 	}
@@ -116,6 +133,10 @@ public class Player {
 			}
 		}
 
+		if (level.isCollidable(x, y)) {
+			setHealth(0);
+		}
+
 		for (Iterator<PlayerDamageEffect> iter = effects.iterator(); iter.hasNext();) {
 			PlayerDamageEffect effect = iter.next();
 			effect.update(delta);
@@ -126,7 +147,10 @@ public class Player {
 	}
 
 	public int getRenderCentreX() {
-		return X_OFFSET + (DEFAULT_WIDTH + 1) / 2;
+		int xPos = Level.getScaledX(level.getXPosition(), x);
+		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
+
+		return xPos + width / 2;
 	}
 
 	public int getRenderCentreY() {
@@ -145,5 +169,9 @@ public class Player {
 		for (PlayerDamageEffect effect : effects) {
 			effect.render(g);
 		}
+	}
+
+	public boolean isDead() {
+		return getHealth() <= 0;
 	}
 }

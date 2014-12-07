@@ -2,7 +2,6 @@ package net.buddat.ludumdare.ld31;
 
 import net.buddat.ludumdare.ld31.music.BeatCalculator;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
-import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.world.Player;
 import net.buddat.ludumdare.ld31.world.Player.Direction;
 
@@ -35,6 +34,9 @@ public class Controller {
 			}
 		}
 
+		if (input.isKeyPressed(Input.KEY_ESCAPE))
+			game.reset();
+
 		if (input.isKeyDown(Input.KEY_SPACE)) {
 			if (!wasSpacePressed) {
 				float position = musicDirector.getPosition();
@@ -47,14 +49,17 @@ public class Controller {
 		} else {
 			wasSpacePressed = false;
 		}
-		if (input.isKeyDown(Input.KEY_UP) || input.isKeyPressed(Input.KEY_UP)) {
-			player.setDirection(Direction.UP);
-		} else if (input.isKeyDown(Input.KEY_DOWN)) {
-			player.setDirection(Direction.DOWN);
-		} else if (input.isKeyDown(Input.KEY_LEFT)) {
-			player.setDirection(Direction.LEFT);
-		} else if (input.isKeyDown(Input.KEY_RIGHT)) {
-			player.setDirection(Direction.RIGHT);
+		if (!player.isDead()) {
+			if (input.isKeyDown(Input.KEY_UP)
+					|| input.isKeyPressed(Input.KEY_UP)) {
+				player.setDirection(Direction.UP);
+			} else if (input.isKeyDown(Input.KEY_DOWN)) {
+				player.setDirection(Direction.DOWN);
+			} else if (input.isKeyDown(Input.KEY_LEFT)) {
+				player.setDirection(Direction.LEFT);
+			} else if (input.isKeyDown(Input.KEY_RIGHT)) {
+				player.setDirection(Direction.RIGHT);
+			}
 		}
 
 		if (input.isKeyPressed(Input.KEY_PERIOD)) {
@@ -62,7 +67,9 @@ public class Controller {
 		} else if (input.isKeyPressed(Input.KEY_SLASH)) {
 			musicDirector.nextSlice();
 		} else if (input.isKeyPressed(Input.KEY_X)) {
-			player.addEffect(new PlayerDamageEffect(player.getRenderCentreX(), player.getRenderCentreY()));
+			// player.addEffect(new
+			// PlayerDamageEffect(player.getRenderCentreX(),
+			// player.getRenderCentreY()));
 		}
 	}
 }
