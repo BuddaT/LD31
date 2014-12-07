@@ -3,11 +3,13 @@ package net.buddat.ludumdare.ld31.world;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import net.buddat.ludumdare.ld31.ColorDirector;
 import net.buddat.ludumdare.ld31.ColorDirector.ColorType;
 import net.buddat.ludumdare.ld31.Game;
 import net.buddat.ludumdare.ld31.constants.Constants;
+import net.buddat.ludumdare.ld31.render.Projectile;
 import net.buddat.ludumdare.ld31.render.TileEffect;
 import net.buddat.ludumdare.ld31.render.TileLavaGlowEffect;
 
@@ -16,6 +18,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Vector2f;
 
 public class Level {
 
@@ -25,6 +28,8 @@ public class Level {
 	private static final int SCALE_LIMIT_DIST = 44;
 	private static final int scaledXDistRight = getScaledX(0, SCALE_LIMIT_DIST);
 	private static final int scaledXDistLeft = getScaledX(SCALE_LIMIT_DIST, 0);
+	private static final int LAVA_R = 255;
+	private static final int PROJECTILE_LEFT_B = 255;
 	
 	private static final int VIEW_RANGE = 80;
 
@@ -43,6 +48,8 @@ public class Level {
 
 	private boolean setupLavaGlow = false;
 	private ArrayList<TileEffect> tileEffectList;
+	private ArrayList<Projectile> projectiles;
+	private ArrayList<ProjectileEmitter> projectileEmitters;
 
 	public Level(Game g, int levelNum, int startingX) {
 		this.game = g;
@@ -74,6 +81,18 @@ public class Level {
 			if (t.hasExpired())
 				toRemove.add(t);
 		}
+		for (ProjectileEmitter emitter : projectileEmitters) {
+			emitter.update(delta);
+		}
+		Iterator<Projectile> projectileIterator = projectiles.iterator();
+		while (projectileIterator.hasNext()) {
+			Projectile projectile = projectileIterator.next();
+			if (projectile.hasExpired()) {
+				projectileIterator.remove();
+			} else {
+				projectile.update(delta);
+			}
+		}
 
 		tileEffectList.removeAll(toRemove);
 	}
@@ -96,6 +115,8 @@ public class Level {
 
 		tileMap = new HashMap<Point, Tile>();
 		tileEffectList = new ArrayList<TileEffect>();
+		projectileEmitters = new ArrayList<ProjectileEmitter>();
+		projectiles = new ArrayList<Projectile>();
 
 		lvlWidth = collisionsLayer.getWidth();
 		lvlHeight = collisionsLayer.getHeight();
@@ -113,8 +134,13 @@ public class Level {
 					if (collisionPixelColor.getAlpha() > 0)
 						t.setCollidable(true);
 
-					if (objectPixelColor.getAlpha() > 0)
+					if (objectPixelColor.getRed() == LAVA_R) {
 						t.setBeatLava(true);
+					} else if (objectPixelColor.getBlue() == PROJECTILE_LEFT_B) {
+						ProjectileEmitter emitter = new ProjectileEmitter(x, y, 0, this);
+						t.setProjectileEmitter(emitter);
+						projectileEmitters.add(emitter);
+					}
 
 					tileMap.put(p, t);
 				}
@@ -159,6 +185,10 @@ public class Level {
 				((TileLavaGlowEffect) t).render(g, xPosition);
 		}
 		setupLavaGlow = false;
+		Iterator<Projectile> projectileIterator = projectiles.iterator();
+		for (Projectile projectile : projectiles) {
+			projectile.render(g);
+		}
 	}
 
 	private void drawEdge(Graphics g, int x, int width) {
@@ -226,6 +256,7 @@ public class Level {
 		private final Point position;
 		private boolean collidable = false;
 		private boolean beatLava = false;
+		private ProjectileEmitter projectileEmitter;
 
 		Tile(Point p) {
 			position = p;
@@ -249,6 +280,14 @@ public class Level {
 
 		private void setBeatLava(boolean l) {
 			beatLava = l;
+		}
+
+		private boolean isProjectileEmitter() {
+			return projectileEmitter != null;
+		}
+
+		private void setProjectileEmitter(ProjectileEmitter emitter) {
+			projectileEmitter = emitter;
 		}
 	}
 }
