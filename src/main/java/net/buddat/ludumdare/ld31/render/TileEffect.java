@@ -14,11 +14,11 @@ public abstract class TileEffect implements Effect {
 		this.duration = duration;
 	}
 
-	protected int getX() {
+	public int getX() {
 		return tileX;
 	}
 
-	protected int getY() {
+	public int getY() {
 		return tileY;
 	}
 

@@ -71,17 +71,21 @@ public class Level {
 				xPosition++;
 			}
 
-			setupLavaGlow = true;
+			if (altBeat % 4 == 0)
+				setupLavaGlow = true;
 		}
 
 		ArrayList<TileEffect> toRemove = new ArrayList<TileEffect>();
 		for (TileEffect t : tileEffectList) {
 			t.update(delta);
-			if (t.hasExpired())
+			if (t.hasExpired()) {
 				toRemove.add(t);
+				Tile tile = tileMap.get(new Point(t.getX(), t.getY()));
+				tile.setCurrentlyHot(false);
+			}
 		}
 		for (ProjectileEmitter emitter : projectileEmitters) {
-			emitter.update(delta);
+			emitter.update(delta, beat, bpm);
 		}
 		Iterator<Projectile> projectileIterator = projectiles.iterator();
 		while (projectileIterator.hasNext()) {
@@ -171,6 +175,7 @@ public class Level {
 						TileLavaGlowEffect effect = new TileLavaGlowEffect(x,
 								y, 1000 * 60 / bpm);
 						tileEffectList.add(effect);
+						t.setCurrentlyHot(true);
 					}
 				}
 
@@ -235,6 +240,17 @@ public class Level {
 		return tile != null && tile.isCollidable();
 	}
 
+	public boolean isTileHot(int x, int y) {
+		Tile tile = tileMap.get(new Point(x, y));
+		return tile != null && tile.isCurrentlyHot();
+	}
+
+	public void setTileHot(int x, int y, boolean h) {
+		Tile tile = tileMap.get(new Point(x, y));
+		if (tile != null)
+			tile.setCurrentlyHot(h);
+	}
+
 	public static int getScaledX(int xPosition, int tileX) {
 		int dist = Math.abs(xPosition - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2f;
@@ -254,8 +270,11 @@ public class Level {
 	private class Tile {
 
 		private final Point position;
+
 		private boolean collidable = false;
 		private boolean beatLava = false;
+		private boolean currentlyHot = false;
+
 		private ProjectileEmitter projectileEmitter;
 
 		Tile(Point p) {
@@ -280,6 +299,14 @@ public class Level {
 
 		private void setBeatLava(boolean l) {
 			beatLava = l;
+		}
+
+		private boolean isCurrentlyHot() {
+			return currentlyHot;
+		}
+
+		private void setCurrentlyHot(boolean h) {
+			currentlyHot = h;
 		}
 
 		private boolean isProjectileEmitter() {

@@ -2,6 +2,7 @@ package net.buddat.ludumdare.ld31.render;
 
 import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.world.Level;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Vector2f;
@@ -10,25 +11,33 @@ import org.newdawn.slick.geom.Vector2f;
  * Basic projectile for starters
  */
 public class Projectile {
+
 	private static final Color DEFAULT_COLOR = Color.yellow;
-	// Speed in distance/second
-	private static final float DEFAULT_SPEED = 20;
+
+	private static final float DEFAULT_SPEED = 2;
+
 	private static final int RADIUS = 2;
 	private static final int SEGMENTS = 6;
+
 	private static final float LIMIT = 200;
 
 	private final Vector2f movement;
 	private final Level level;
-	private Vector2f position;
+	private final Vector2f position;
+
 	private float distanceLeft = LIMIT;
+
 	private boolean hasExpired = false;
 
-	public Projectile(int tileX, int tileY, Vector2f direction, Level level) {
+	public Projectile(int tileX, int tileY, Vector2f direction, Level level, int bpm) {
 		position = new Vector2f(
 				tileX * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
 				tileY * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2);
 		Vector2f newDirection = new Vector2f(direction.getTheta());
-		movement = newDirection.scale(DEFAULT_SPEED);
+		
+		float bps = bpm / 60f;
+		float speedScale = (1.0f / bps) * DEFAULT_SPEED;
+		movement = newDirection.scale(Constants.TILE_WIDTH * speedScale);
 		this.level = level;
 	}
 

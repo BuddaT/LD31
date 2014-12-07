@@ -143,6 +143,11 @@ public class Player {
 			setHealth(0);
 		}
 
+		if (level.isTileHot(x, y)) {
+			setHealth(getHealth() - 20);
+			level.setTileHot(x, y, false);
+		}
+
 		for (Iterator<PlayerEffect> iter = effects.iterator(); iter.hasNext();) {
 			PlayerEffect effect = iter.next();
 			effect.update(delta);
@@ -177,6 +182,28 @@ public class Player {
 		for (PlayerEffect effect : effects) {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
 			effect.render(g);
+		}
+
+		/*
+		 * Draw Healthbar
+		 */
+		{
+			int blockWidth = 10;
+			int gap = 2;
+			int segments = 20;
+			int bgW = segments * (blockWidth + gap) + gap;
+			int bgX = Constants.GAME_WIDTH - 20 - bgW;
+
+			g.setColor(ColorDirector.getSecondary(0));
+			g.fillRect(bgX, Constants.GAME_HEIGHT - 40, bgW, 20);
+
+			g.setColor(ColorDirector.getPrimary(0));
+			for (int i = 0; i < segments; i++) {
+				if (health >= MAX_HEALTH / segments * i) {
+					g.fillRect(bgX + gap + (blockWidth + gap) * i,
+							Constants.GAME_HEIGHT - 38, blockWidth, 16);
+				}
+			}
 		}
 	}
 

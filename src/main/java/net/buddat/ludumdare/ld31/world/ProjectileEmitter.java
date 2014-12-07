@@ -1,23 +1,26 @@
 package net.buddat.ludumdare.ld31.world;
 
-import net.buddat.ludumdare.ld31.render.Projectile;
-import org.newdawn.slick.geom.Vector2f;
-
 import java.util.List;
+
+import net.buddat.ludumdare.ld31.render.Projectile;
+
+import org.newdawn.slick.geom.Vector2f;
 
 /**
  * Basic emitter of projectiles.
  */
 public class ProjectileEmitter {
 
-	private static final int DEFAULT_TIME = 1000;
+	private static final int DEFAULT_TIME = 4;
 	private final int x;
 	private final int y;
 	private final Level level;
 	private final List<Projectile> projectiles;
-	private int timeBetweenEmissions;
-	private int timeToNextEmission;
+	private final int timeBetweenEmissions;
+	private final int timeToNextEmission;
 	private final Vector2f direction;
+
+	private int lastFire = 0;
 
 	/**
 	 * Create a new emitter of projectiles.
@@ -35,16 +38,17 @@ public class ProjectileEmitter {
 		this.projectiles = projectiles;
 	}
 
-	public void update(int delta) {
-		if (timeToNextEmission > delta) {
-			timeToNextEmission -= delta;
-		} else {
-			timeToNextEmission = timeBetweenEmissions;
-			projectiles.add(emitProjectile());
+	public void update(int delta, boolean onBeat, int bpm) {
+		if (onBeat) {
+			lastFire++;
+			if (lastFire % DEFAULT_TIME == 0) {
+				projectiles.add(emitProjectile(bpm));
+				lastFire = 0;
+			}
 		}
 	}
 
-	public Projectile emitProjectile() {
-		return new Projectile(x, y, direction, level);
+	public Projectile emitProjectile(int bpm) {
+		return new Projectile(x, y, direction, level, bpm);
 	}
 }
