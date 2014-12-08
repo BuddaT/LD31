@@ -28,22 +28,34 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	private static final int NO_SLICE = -1;
 
+	public static final String TITLE_TRACK = "chipshit_128.ogg";
+	private static final String DEFAULT_TRACK = "level1_123";
+	// Probably better done as metadata but whatever for now
+	private static final String[] LEVEL_TRACKS = new String[3];
+
 	static {
 		HashMap<String, Integer> bpm = new HashMap<String, Integer>();
 		HashMap<String, Music> musics = new HashMap<String, Music>();
 		HashMap<String, Integer> slices = new HashMap<String, Integer>();
 
 		// First full tracks
-		bpm.put("chipshit_128.ogg", 128);
+		bpm.put(TITLE_TRACK, 128);
 		bpm.put("thememaybe_172.ogg", 172);
 		for (String musicName : bpm.keySet()) {
 			musics.put(musicName, loadMusic(musicName));
 		}
 
 		// Now add slices
-		bpm.put("level1_123", 123);
+		LEVEL_TRACKS[0] = "level1_123";
+		bpm.put(LEVEL_TRACKS[0], 123);
+		LEVEL_TRACKS[1] = "level2_123";
+		bpm.put(LEVEL_TRACKS[1], 123);
+		LEVEL_TRACKS[2] = "level3_140";
+		bpm.put(LEVEL_TRACKS[1], 140);
 
-		slices.put("level1_123", 4);
+		for (String slicedTrack : LEVEL_TRACKS) {
+			slices.put(slicedTrack, 4); // all are sliced into 4 at the moment
+		}
 		for (String sliceName : slices.keySet()) {
 			for (int slice = 0; slice < slices.get(sliceName); slice++) {
 				String musicName = generateSliceName(sliceName, slice);
@@ -69,17 +81,31 @@ public class MusicDirector implements MusicListener, Runnable {
 		}
 	}
 
+	/**
+	 * Returns the track name for the given level number
+	 * @param levelNumber Level number for which the track is returned
+	 * @return Track for the given level
+	 */
+	public String getMusicForLevel(int levelNumber) {
+		return LEVEL_TRACKS.length >= levelNumber
+				|| LEVEL_TRACKS[levelNumber - 1] == null ?
+				DEFAULT_TRACK : LEVEL_TRACKS[levelNumber - 1];
+	}
+
+	public int getNumSlices(String sliceName) {
+		return SLICES.containsKey(sliceName) ? SLICES.get(sliceName) : NO_SLICE;
+	}
+
 	private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
 	private int volume = 10;
-	private volatile String currentMusicName;
-	private volatile int currentSlice;
-	private volatile Music currentMusic;
+	// Wrap music info in single volatile
+	private volatile MusicDetails currentMusicDetails;
 
 	private final MusicDirectorListener listener;
 
 	public MusicDirector(String initialMusic, MusicDirectorListener listener) throws SlickException {
-		queue.add(new QueueAction(QueueActionType.PLAY, initialMusic));
-		currentMusicName = initialMusic;
+		queue.add(new QueueAction(QueueActionType.PLAY_IMMEDIATE, initialMusic));
+		currentMusicDetails = new MusicDetails(initialMusic, NO_SLICE, null);
 		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
 			throw new SlickException("Unknown music " + initialMusic);
 		}
@@ -109,7 +135,7 @@ public class MusicDirector implements MusicListener, Runnable {
 	 * @return Current position of the music.
 	 */
 	public float getPosition() {
-		return currentMusic.getPosition();
+		return currentMusicDetails.music.getPosition();
 	}
 
 	/**
@@ -125,64 +151,68 @@ public class MusicDirector implements MusicListener, Runnable {
 			boolean goToNext = false;
 			QueueAction action = queue.take();
 			while (action != null && action.type != QueueActionType.END) {
-				if (action.type == QueueActionType.LOOP) {
+				if (action.type == QueueActionType.PLAY) {
 					// Only want to loop if there are no other actions
 					if (goToNext) {
-						int oldSlice = currentSlice;
-						currentSlice = (currentSlice + 1) % SLICES.get(currentMusicName);
-						if (currentMusic != null) {
-							currentMusic.removeListener(this);
+						MusicDetails oldDetails = currentMusicDetails;
+						int currentSlice = (oldDetails.slice + 1) % SLICES.get(oldDetails.track);
+						if (oldDetails != null) {
+							oldDetails.music.removeListener(this);
 						}
-						currentMusic = MUSICS.get(generateSliceName(currentMusicName, currentSlice));
-						currentMusic.addListener(this);
+						Music music = MUSICS.get(generateSliceName(oldDetails.track, currentSlice));
+						music.addListener(this);
 						System.out.println("Playing next slice");
-						currentMusic.play();
-						listener.onSliceChanged(currentMusicName, oldSlice, currentSlice);
+						music.play();
+						listener.onSliceChanged(oldDetails.track, oldDetails.slice, currentSlice);
+						currentMusicDetails = new MusicDetails(oldDetails.track, currentSlice, music);
 						goToNext = false;
 					} else if (!queue.isEmpty()) {
 						continue;
-					} else if (currentMusic == null) {
-						System.err.println("Null music when LOOP requested");
-					} else {
-						currentMusic.play();
+					} else if (currentMusicDetails.music == null) {
+						System.err.println("Null music when PLAY requested");
+					} else if (!currentMusicDetails.music.playing()) {
+						currentMusicDetails.music.play();
 					}
-				} else if (action.type == QueueActionType.PLAY) {
+				} else if (action.type == QueueActionType.PLAY_IMMEDIATE) {
 					goToNext = false;
 					String oldTrack = "";
 					float oldPosition = 0;
 					int oldBpm = 0;
-					if (currentMusic != null) {
-						currentMusic.removeListener(this);
-						oldTrack = currentMusicName;
-						oldPosition = currentMusic.getPosition();
-						oldBpm = BEATS_PER_MINUTE.get(currentMusicName);
+					MusicDetails oldMusicDetails = currentMusicDetails;
+					if (oldMusicDetails.music != null) {
+						oldMusicDetails.music.removeListener(this);
+						oldPosition = oldMusicDetails.music.getPosition();
+						oldBpm = BEATS_PER_MINUTE.get(oldMusicDetails.track);
 					}
-					currentMusicName = action.details;
-					if (SLICES.containsKey(currentMusicName)) {
-						currentSlice = 0;
-						currentMusic = MUSICS.get(generateSliceName(currentMusicName, 0));
+					String track = (String) action.details;
+					int slice;
+					Music music;
+					if (SLICES.containsKey(track)) {
+						slice = 0;
+						music = MUSICS.get(generateSliceName(track, 0));
 					} else {
-						currentSlice = NO_SLICE;
-						currentMusic = MUSICS.get(currentMusicName);
+						slice = NO_SLICE;
+						music = MUSICS.get(track);
 					}
-					currentMusic.addListener(this);
-					currentMusic.play();
-					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicName, BEATS_PER_MINUTE.get(currentMusicName));
+					music.addListener(this);
+					music.play();
+					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, track, BEATS_PER_MINUTE.get(track));
+					currentMusicDetails = new MusicDetails(track, slice, music);
 				} else if (action.type == QueueActionType.NEXT) {
 					// On the next loop notification,
 					if (goToNext) {
-						System.out.println("Next slice already queued for playing");
-					} else if (SLICES.containsKey(currentMusicName)) {
+						// Next slice already queued for playing
+					} else if (SLICES.containsKey(currentMusicDetails.track)) {
 						System.out.println("Next slice queued for playing, waiting for end of current slice");
 						goToNext = true;
 					} else {
-						System.err.println("Can't take next slice, track " + currentMusicName + " isn't sliced");
+						System.err.println("Can't take next slice, track " + currentMusicDetails.track + " isn't sliced");
 					}
 				}
 				action = queue.take();
 			}
-			if (currentMusic != null) {
-				currentMusic.removeListener(this);
+			if (currentMusicDetails.music != null) {
+				currentMusicDetails.music.removeListener(this);
 			}
 			System.out.println("End of music");
 		} catch (InterruptedException e) {
@@ -197,8 +227,26 @@ public class MusicDirector implements MusicListener, Runnable {
 		queue.offer(new QueueAction(QueueActionType.NEXT));
 	}
 
+	/**
+	 * Progress to the next slice if current progression exceeds the slice position in the music track
+	 * @param position Current position
+	 * @param end End position
+	 */
+	public void ratchetSlice(int position, int end) {
+		// race conditions here but don't expect any problems for most cases
+		MusicDetails musicDetails = currentMusicDetails;
+		if (musicDetails.track == null || !SLICES.containsKey(musicDetails.track)) {
+			return;
+		}
+		float sliceProgression = ((float) musicDetails.slice + 1) / SLICES.get(musicDetails.track);
+		float levelProgression = ((float) position) / end;
+		if (levelProgression > sliceProgression) {
+			nextSlice();
+		}
+	}
+
 	public void playTrack(String musicBaseName) {
-		if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
+		if (!queue.offer(new QueueAction(QueueActionType.PLAY_IMMEDIATE, musicBaseName))) {
 			System.err.println("Couldn't add to music queue: " + musicBaseName);
 		}
 	}
@@ -221,7 +269,7 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	@Override
 	public void musicEnded(Music music) {
-		if (!queue.offer(new QueueAction(QueueActionType.LOOP, null))) {
+		if (!queue.offer(new QueueAction(QueueActionType.PLAY, null))) {
 			System.err.println("Couldn't offer end loop, queue is full");
 		}
 	}
@@ -232,18 +280,29 @@ public class MusicDirector implements MusicListener, Runnable {
 	}
 
 	public String getCurrentMusicName() {
-		return currentMusicName;
+		return currentMusicDetails.track;
+	}
+
+	private class MusicDetails {
+		private String track;
+		private int slice;
+		private Music music;
+		public MusicDetails(String track, int slice, Music music) {
+			this.track = track;
+			this.slice = slice;
+			this.music = music;
+		}
 	}
 
 	private enum QueueActionType {
 		/**
 		 * Play a new track, starting immediately
 		 */
-		PLAY,
+		PLAY_IMMEDIATE,
 		/**
-		 * Loop the current track again
+		 * Play the next track at the end of the previous track
 		 */
-		LOOP,
+		PLAY,
 		/**
 		 * Play the next slice in the track
 		 */
@@ -256,16 +315,16 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	private class QueueAction {
 		private final QueueActionType type;
-		private final String details;
+		private final Object details;
 
-		QueueAction(QueueActionType type, String details) {
+		QueueAction(QueueActionType type, Object details) {
 			this.type = type;
 			this.details = details;
 		}
 
 		QueueAction(QueueActionType type) {
-			if (type == QueueActionType.PLAY) {
-				System.err.println("PLAY queue action requires a track name");
+			if (type == QueueActionType.PLAY_IMMEDIATE) {
+				System.err.println("PLAY_IMMEDIATE queue action requires a track name");
 			}
 			this.type = type;
 			this.details = null;

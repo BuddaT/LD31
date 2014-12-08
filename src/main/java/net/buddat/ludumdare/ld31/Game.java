@@ -106,6 +106,8 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 		if (player.getX() > currentLevel.getWidth()) {
 			nextLevel(true);
+		} else {
+			music.ratchetSlice(currentLevel.getXPosition(), currentLevel.getWidth());
 		}
 
 		controller.handleInput(gc.getInput());
@@ -130,6 +132,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		nextLevel = new Level(this, currentLevel.getLevelNumber() + 1,
 				currentLevel.getXPosition() - currentLevel.getWidth());
 		nextLevel.init();
+		music.playTrack(music.getMusicForLevel(currentLevel.getLevelNumber()));
 
 		if (forcePlayerChange) {
 			player.setLevel(currentLevel);

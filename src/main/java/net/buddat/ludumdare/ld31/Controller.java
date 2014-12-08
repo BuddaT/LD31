@@ -31,9 +31,10 @@ public class Controller {
 		if (!game.getTitleScreen().isMoving()
 				&& !game.getTitleScreen().isMovedOut()) {
 			if (input.isKeyPressed(Input.KEY_ENTER)) {
-				if (game.getTitleScreen().getSelected() == Title.START)
+				if (game.getTitleScreen().getSelected() == Title.START) {
 					game.getTitleScreen().setStartMoving(true);
-				else if (game.getTitleScreen().getSelected() == Title.QUIT)
+					musicDirector.playTrack(musicDirector.getMusicForLevel(1));
+				} else if (game.getTitleScreen().getSelected() == Title.QUIT)
 					System.exit(0);
 			}
 
