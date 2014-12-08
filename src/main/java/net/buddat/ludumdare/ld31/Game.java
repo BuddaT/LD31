@@ -70,7 +70,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	@Override
 	public void init(GameContainer gc) throws SlickException {
 		try {
-			music = new MusicDirector(TITLE_TRACK, this);
+			music = new MusicDirector(this);
 		} catch (SlickException e) {
 			e.printStackTrace();
 		}
@@ -136,7 +136,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		nextLevel = new Level(this, currentLevel.getLevelNumber() + 1,
 				currentLevel.getXPosition() - currentLevel.getWidth());
 		nextLevel.init();
-		music.playTrack(music.getMusicForLevel(currentLevel.getLevelNumber()));
+		music.queueTrack(music.getMusicForLevel(currentLevel.getLevelNumber()));
 
 		if (forcePlayerChange) {
 			player.setLevel(currentLevel);

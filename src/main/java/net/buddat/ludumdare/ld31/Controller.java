@@ -43,8 +43,10 @@ public class Controller {
 				if (game.getTitleScreen().getSelected() == Title.START) {
 					game.getTitleScreen().setStartMoving(true);
 					musicDirector.playTrack(musicDirector.getMusicForLevel(1));
-				} else if (game.getTitleScreen().getSelected() == Title.QUIT)
+				} else if (game.getTitleScreen().getSelected() == Title.QUIT) {
+					musicDirector.stop();
 					System.exit(0);
+				}
 			}
 
 			if (input.isKeyPressed(Input.KEY_UP)) {

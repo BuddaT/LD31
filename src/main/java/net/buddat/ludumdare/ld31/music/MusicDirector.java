@@ -98,27 +98,14 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	private final BlockingQueue<QueueAction> queue = new ArrayBlockingQueue<QueueAction>(QUEUE_SIZE);
 	private int volume = 10;
-	// Wrap music info in single volatile
+	// Wrap music info in single volatile. Should only be written to in one thread
 	private volatile MusicDetails currentMusicDetails;
 
 	private final MusicDirectorListener listener;
 
-	public MusicDirector(String initialMusic, MusicDirectorListener listener) throws SlickException {
-		queue.add(new QueueAction(QueueActionType.PLAY_IMMEDIATE, initialMusic));
-		currentMusicDetails = new MusicDetails(initialMusic, NO_SLICE, null);
-		if (!BEATS_PER_MINUTE.containsKey(initialMusic)) {
-			throw new SlickException("Unknown music " + initialMusic);
-		}
+	public MusicDirector(MusicDirectorListener listener) throws SlickException {
+		this.currentMusicDetails = new MusicDetails("", NO_SLICE, null);
 		this.listener = listener;
-	}
-
-	/**
-	 * Stops the current music track and sets a new track, with looping.
-	 *
-	 * @param musicBaseName New track to set. If the track is sliced, base name for the slices.
-	 */
-	public void setTrack(String musicBaseName) {
-		playTrack(musicBaseName);
 	}
 
 	/**
@@ -128,7 +115,7 @@ public class MusicDirector implements MusicListener, Runnable {
 		Object[] musicNames = BEATS_PER_MINUTE.keySet().toArray();
 		String musicName = (String) musicNames[(int) (Math.random() * musicNames.length)];
 		System.out.println("Setting to random track " + musicName);
-		setTrack(musicName);
+		playTrack(musicName);
 	}
 
 	/**
@@ -151,17 +138,17 @@ public class MusicDirector implements MusicListener, Runnable {
 			boolean goToNext = false;
 			QueueAction action = queue.take();
 			while (action != null && action.type != QueueActionType.END) {
-				if (action.type == QueueActionType.PLAY) {
+				if (action.type == QueueActionType.PLAY_ENDED) {
 					// Only want to loop if there are no other actions
 					if (goToNext) {
 						MusicDetails oldDetails = currentMusicDetails;
 						int currentSlice = (oldDetails.slice + 1) % SLICES.get(oldDetails.track);
 						if (oldDetails != null) {
-							oldDetails.music.removeListener(this);
+							System.out.println("Switching slices, old slice " + oldDetails.slice);
 						}
 						Music music = MUSICS.get(generateSliceName(oldDetails.track, currentSlice));
 						music.addListener(this);
-						System.out.println("Playing next slice");
+						System.out.println("Playing next slice, track " + oldDetails.track + " slice " + currentSlice);
 						music.play();
 						listener.onSliceChanged(oldDetails.track, oldDetails.slice, currentSlice);
 						currentMusicDetails = new MusicDetails(oldDetails.track, currentSlice, music);
@@ -171,7 +158,16 @@ public class MusicDirector implements MusicListener, Runnable {
 					} else if (currentMusicDetails.music == null) {
 						System.err.println("Null music when PLAY requested");
 					} else if (!currentMusicDetails.music.playing()) {
+						currentMusicDetails.music.addListener(this);
 						currentMusicDetails.music.play();
+					}
+				} if (action.type == QueueActionType.PLAY) {
+					if (action.details == null) {
+						System.err.println("Null music details supplied for " + action.type + " request");
+					} else {
+						MusicDetails oldDetails = currentMusicDetails;
+						System.out.println("Next track queued: " + (String) action.details);
+						currentMusicDetails = new MusicDetails((String) action.details);
 					}
 				} else if (action.type == QueueActionType.PLAY_IMMEDIATE) {
 					goToNext = false;
@@ -184,20 +180,13 @@ public class MusicDirector implements MusicListener, Runnable {
 						oldPosition = oldMusicDetails.music.getPosition();
 						oldBpm = BEATS_PER_MINUTE.get(oldMusicDetails.track);
 					}
-					String track = (String) action.details;
-					int slice;
-					Music music;
-					if (SLICES.containsKey(track)) {
-						slice = 0;
-						music = MUSICS.get(generateSliceName(track, 0));
-					} else {
-						slice = NO_SLICE;
-						music = MUSICS.get(track);
-					}
-					music.addListener(this);
-					music.play();
-					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, track, BEATS_PER_MINUTE.get(track));
-					currentMusicDetails = new MusicDetails(track, slice, music);
+					currentMusicDetails = new MusicDetails((String) action.details);
+					currentMusicDetails.music.addListener(this);
+					System.out.println("Playing immediate track "
+							+ currentMusicDetails.track
+							+ (currentMusicDetails.slice == NO_SLICE ? "" : " slice " + currentMusicDetails.slice));
+					currentMusicDetails.music.play();
+					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicDetails.track, BEATS_PER_MINUTE.get(currentMusicDetails.track));
 				} else if (action.type == QueueActionType.NEXT) {
 					// On the next loop notification,
 					if (goToNext) {
@@ -213,6 +202,7 @@ public class MusicDirector implements MusicListener, Runnable {
 			}
 			if (currentMusicDetails.music != null) {
 				currentMusicDetails.music.removeListener(this);
+				currentMusicDetails.music.stop();
 			}
 			System.out.println("End of music");
 		} catch (InterruptedException e) {
@@ -251,6 +241,12 @@ public class MusicDirector implements MusicListener, Runnable {
 		}
 	}
 
+	public void queueTrack(String musicBaseName) {
+		if (!queue.offer(new QueueAction(QueueActionType.PLAY, musicBaseName))) {
+			System.err.println("Couldn't add next track to music queue: " + musicBaseName);
+		}
+	}
+
 	public void increaseVolume() {
 		volume = Math.min(volume + 1, MAX_VOLUME);
 		setVolume(volume);
@@ -273,7 +269,8 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	@Override
 	public void musicEnded(Music music) {
-		if (!queue.offer(new QueueAction(QueueActionType.PLAY, null))) {
+		music.removeListener(this);
+		if (!queue.offer(new QueueAction(QueueActionType.PLAY_ENDED, null))) {
 			System.err.println("Couldn't offer end loop, queue is full");
 		}
 	}
@@ -283,14 +280,32 @@ public class MusicDirector implements MusicListener, Runnable {
 		// do nothing
 	}
 
+	public void stop() {
+		queue.offer(new QueueAction(QueueActionType.END));
+	}
+
 	public String getCurrentMusicName() {
 		return currentMusicDetails.track;
 	}
 
 	private class MusicDetails {
-		private String track;
-		private int slice;
-		private Music music;
+		private final String track;
+		private final int slice;
+		private final Music music;
+		public MusicDetails(String track) {
+			this.track = track;
+			if (SLICES.containsKey(track)) {
+				slice = 0;
+				music = MUSICS.get(generateSliceName(track, slice));
+			} else {
+				slice = NO_SLICE;
+				if (MUSICS.containsKey(track)) {
+					music = MUSICS.get(track);
+				} else {
+					music = null;
+				}
+			}
+		}
 		public MusicDetails(String track, int slice, Music music) {
 			this.track = track;
 			this.slice = slice;
@@ -307,6 +322,10 @@ public class MusicDirector implements MusicListener, Runnable {
 		 * Play the next track at the end of the previous track
 		 */
 		PLAY,
+		/**
+		 * Last track has completed play
+		 */
+		PLAY_ENDED,
 		/**
 		 * Play the next slice in the track
 		 */
