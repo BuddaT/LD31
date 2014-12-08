@@ -267,6 +267,10 @@ public class MusicDirector implements MusicListener, Runnable {
 		}
 	}
 
+	public int getVolume() {
+		return volume;
+	}
+
 	@Override
 	public void musicEnded(Music music) {
 		if (!queue.offer(new QueueAction(QueueActionType.PLAY, null))) {

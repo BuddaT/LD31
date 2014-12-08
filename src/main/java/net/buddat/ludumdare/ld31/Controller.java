@@ -2,10 +2,12 @@ package net.buddat.ludumdare.ld31;
 
 import net.buddat.ludumdare.ld31.music.BeatCalculator;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
+import net.buddat.ludumdare.ld31.render.Volume;
 import net.buddat.ludumdare.ld31.world.Player;
 import net.buddat.ludumdare.ld31.world.Player.Direction;
 
 import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
 
 /**
  * Controller input handler, detects key presses and directs actions accordingly.
@@ -17,17 +19,24 @@ public class Controller {
 	private final BeatCalculator beatCalculator;
 	private final Player player;
 	private final Game game;
+	private final Volume volume;
 
 	private boolean wasSpacePressed = false;
 
-	public Controller(Game g, MusicDirector musicDirector, Player player) {
+	public Controller(Game g, MusicDirector musicDirector, Volume volume, Player player) throws SlickException {
 		this.game = g;
 		this.musicDirector = musicDirector;
 		this.beatCalculator = new BeatCalculator(TOLERANCE);
 		this.player = player;
+		this.volume = volume;
 	}
 
 	public void handleInput(Input input) {
+		if (input.isKeyPressed(Input.KEY_ADD)) {
+			volume.increaseVolume();
+		} else if (input.isKeyPressed(Input.KEY_SUBTRACT)) {
+			volume.decreaseVolume();
+		}
 		if (!game.getTitleScreen().isMoving()
 				&& !game.getTitleScreen().isMovedOut()) {
 			if (input.isKeyPressed(Input.KEY_ENTER)) {
@@ -79,10 +88,6 @@ public class Controller {
 			musicDirector.randomTrack();
 		} else if (input.isKeyPressed(Input.KEY_SLASH)) {
 			musicDirector.nextSlice();
-		} else if (input.isKeyPressed(Input.KEY_ADD)) {
-			musicDirector.increaseVolume();
-		} else if (input.isKeyPressed(Input.KEY_SUBTRACT)) {
-			musicDirector.decreaseVolume();
 		} else if (input.isKeyPressed(Input.KEY_X)) {
 			// player.addEffect(new
 			// PlayerDamageEffect(player.getRenderCentreX(),

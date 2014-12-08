@@ -4,6 +4,7 @@ import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.music.BeatCalculator;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
 import net.buddat.ludumdare.ld31.music.MusicDirectorListener;
+import net.buddat.ludumdare.ld31.render.Volume;
 import net.buddat.ludumdare.ld31.world.Level;
 import net.buddat.ludumdare.ld31.world.Player;
 
@@ -32,6 +33,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 	private Image backgroundImage;
 
 	private boolean needsReset = false;
+	private Volume volume;
 
 	public Game(String title) {
 		super(title);
@@ -62,6 +64,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			Title.textFont.drawString(Constants.GAME_WIDTH / 2 - infoWidth / 2,
 					50, info, ColorDirector.getTextPrimary());
 		}
+		volume.render(g);
 	}
 
 	@Override
@@ -72,6 +75,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			e.printStackTrace();
 		}
 		new Thread(music).start();
+		volume = new Volume(music);
 		reset(gc);
 
 		backgroundImage = new Image("levels/background.png");
@@ -164,7 +168,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		sinceLast = 0;
 	}
 
-	public void reset(GameContainer gc) {
+	public void reset(GameContainer gc) throws SlickException {
 		lastLevel = null;
 		currentLevel = new Level(this, 1, START_X);
 		currentLevel.init();
@@ -174,7 +178,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 		music.playTrack(TITLE_TRACK);
 
 		player = new Player(START_X, currentLevel.getStartY(), currentLevel);
-		controller = new Controller(this, music, player);
+		controller = new Controller(this, music, volume, player);
 		title = new Title();
 
 		gc.getInput().clearKeyPressedRecord();
