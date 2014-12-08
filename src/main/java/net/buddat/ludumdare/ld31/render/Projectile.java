@@ -5,6 +5,8 @@ import net.buddat.ludumdare.ld31.world.Level;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.geom.Circle;
+import org.newdawn.slick.geom.Shape;
 import org.newdawn.slick.geom.Vector2f;
 
 /**
@@ -28,12 +30,14 @@ public class Projectile {
 	private float distanceLeft = LIMIT;
 
 	private boolean hasExpired = false;
+	private Circle collisionBounds;
 
 	public Projectile(int tileX, int tileY, Vector2f direction, Level level, int bpm) {
 		position = new Vector2f(
 				tileX * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
 				tileY * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2);
 		Vector2f newDirection = new Vector2f(direction.getTheta());
+		collisionBounds = new Circle(position.getX(), position.getY(), RADIUS);
 		
 		float bps = bpm / 60f;
 		float speedScale = (1.0f / bps) * DEFAULT_SPEED;
@@ -51,6 +55,8 @@ public class Projectile {
 			} else {
 				distanceLeft -= change.length();
 				position.add(change);
+				collisionBounds.setCenterX(position.getX());
+				collisionBounds.setCenterY(position.getY());
 			}
 		}
 	}
@@ -67,6 +73,10 @@ public class Projectile {
 		// Scaled left x position
 		float scaleXLeft = (position.getX() % Constants.TILE_WIDTH) * tileScalingFactor + scaleTileX - scaleXRadius;
 		g.fillOval(scaleXLeft, position.getY() - RADIUS, scaleXRadius * 2, RADIUS * 2, SEGMENTS);
+	}
+
+	public boolean collidesWith(Shape shape) {
+		return !hasExpired && collisionBounds.intersects(shape);
 	}
 
 	public boolean hasExpired() {
