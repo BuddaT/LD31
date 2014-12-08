@@ -50,11 +50,17 @@ public class MusicDirector implements MusicListener, Runnable {
 		bpm.put(LEVEL_TRACKS[0], 123);
 		LEVEL_TRACKS[1] = "level2_123";
 		bpm.put(LEVEL_TRACKS[1], 123);
-		LEVEL_TRACKS[2] = "level3_140";
-		bpm.put(LEVEL_TRACKS[1], 140);
+		LEVEL_TRACKS[2] = "level3_123";
+		bpm.put(LEVEL_TRACKS[2], 123);
+		LEVEL_TRACKS[3] = "level4_123";
+		bpm.put(LEVEL_TRACKS[3], 123);
+		LEVEL_TRACKS[4] = "level5_140";
+		bpm.put(LEVEL_TRACKS[4], 140);
+		LEVEL_TRACKS[5] = "level6_140";
+		bpm.put(LEVEL_TRACKS[5], 140);
 
 		for (String slicedTrack : LEVEL_TRACKS) {
-			slices.put(slicedTrack, 4); // all are sliced into 4 at the moment
+			slices.put(slicedTrack, 2); // all are sliced into 2 at the moment
 		}
 		for (String sliceName : slices.keySet()) {
 			for (int slice = 0; slice < slices.get(sliceName); slice++) {
