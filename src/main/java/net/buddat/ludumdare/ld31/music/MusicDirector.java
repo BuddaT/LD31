@@ -143,9 +143,6 @@ public class MusicDirector implements MusicListener, Runnable {
 					if (goToNext) {
 						MusicDetails oldDetails = currentMusicDetails;
 						int currentSlice = (oldDetails.slice + 1) % SLICES.get(oldDetails.track);
-						if (oldDetails != null) {
-							System.out.println("Switching slices, old slice " + oldDetails.slice);
-						}
 						Music music = MUSICS.get(generateSliceName(oldDetails.track, currentSlice));
 						music.addListener(this);
 						System.out.println("Playing next slice, track " + oldDetails.track + " slice " + currentSlice);
@@ -165,9 +162,8 @@ public class MusicDirector implements MusicListener, Runnable {
 					if (action.details == null) {
 						System.err.println("Null music details supplied for " + action.type + " request");
 					} else {
-						MusicDetails oldDetails = currentMusicDetails;
-						System.out.println("Next track queued: " + (String) action.details);
-						currentMusicDetails = new MusicDetails((String) action.details);
+						System.out.println("Next track queued: " + action.details);
+						currentMusicDetails = new MusicDetails(action.details);
 					}
 				} else if (action.type == QueueActionType.PLAY_IMMEDIATE) {
 					goToNext = false;
@@ -180,7 +176,7 @@ public class MusicDirector implements MusicListener, Runnable {
 						oldPosition = oldMusicDetails.music.getPosition();
 						oldBpm = BEATS_PER_MINUTE.get(oldMusicDetails.track);
 					}
-					currentMusicDetails = new MusicDetails((String) action.details);
+					currentMusicDetails = new MusicDetails(action.details);
 					currentMusicDetails.music.addListener(this);
 					System.out.println("Playing immediate track "
 							+ currentMusicDetails.track
@@ -338,9 +334,9 @@ public class MusicDirector implements MusicListener, Runnable {
 
 	private class QueueAction {
 		private final QueueActionType type;
-		private final Object details;
+		private final String details;
 
-		QueueAction(QueueActionType type, Object details) {
+		QueueAction(QueueActionType type, String details) {
 			this.type = type;
 			this.details = details;
 		}
