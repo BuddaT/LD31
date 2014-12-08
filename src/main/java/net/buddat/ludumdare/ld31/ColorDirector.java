@@ -69,7 +69,7 @@ public class ColorDirector {
 		if (beatCount % 4 == 0) {
 			getRandomPrimary(ColorType.WALL);
 
-			if (colorRandom.nextInt(4) == 0)
+			if (colorRandom.nextInt(3) == 0)
 				setColor(ColorType.SLOW_WALL, getColor(ColorType.PLAYER));
 			else
 				setColor(ColorType.SLOW_WALL, getColor(ColorType.WALL));

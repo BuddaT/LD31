@@ -1,14 +1,14 @@
 package net.buddat.ludumdare.ld31.music;
 
-import org.newdawn.slick.Music;
-import org.newdawn.slick.MusicListener;
-import org.newdawn.slick.SlickException;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+
+import org.newdawn.slick.Music;
+import org.newdawn.slick.MusicListener;
+import org.newdawn.slick.SlickException;
 
 /**
  * Loads and plays music, switching on demand and retrieving bpm information. Some tracks are divided into multiple
@@ -31,7 +31,7 @@ public class MusicDirector implements MusicListener, Runnable {
 	public static final String TITLE_TRACK = "chipshit_128.ogg";
 	private static final String DEFAULT_TRACK = "level1_123";
 	// Probably better done as metadata but whatever for now
-	private static final String[] LEVEL_TRACKS = new String[3];
+	private static final String[] LEVEL_TRACKS = new String[6];
 
 	static {
 		HashMap<String, Integer> bpm = new HashMap<String, Integer>();

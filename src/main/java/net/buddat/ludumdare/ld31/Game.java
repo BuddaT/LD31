@@ -184,7 +184,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 		music.playTrack(TITLE_TRACK);
 
-		player = new Player(START_X, currentLevel.getStartY(), currentLevel);
+		player = new Player(2, currentLevel.getStartY(), currentLevel);
 		controller = new Controller(this, music, volume, player);
 		title = new Title();
 
