@@ -4,11 +4,9 @@ import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.music.MusicDirector;
 import org.newdawn.slick.*;
 import org.newdawn.slick.font.effects.ColorEffect;
-import org.newdawn.slick.opengl.Texture;
 
 /**
- * Created with IntelliJ IDEA. User: taufiq Date: 8/12/14 Time: 11:50 AM To change this template use File | Settings |
- * File Templates.
+ * Volume control display
  */
 public class Volume {
 	private static final String VOLUME_ICON = "volume.png";
@@ -23,7 +21,6 @@ public class Volume {
 
 	private final Image volumeImage;
 	private final MusicDirector musicDirector;
-	private final int width;
 	private final int increaseX;
 	private final int volumeX;
 	private final int volumeImageX;
@@ -37,8 +34,6 @@ public class Volume {
 		volumeFont.getEffects().add(new ColorEffect(java.awt.Color.WHITE));
 		volumeFont.loadGlyphs();
 		this.musicDirector = musicDirector;
-		this.width = volumeFont.getWidth(DECREASE_TEXT) + BUFFER + volumeImage.getWidth() + BUFFER +
-			VOLUME_DIVISOR * (VOLUME_BAR_WIDTH + BUFFER) + BUFFER + volumeFont.getWidth(INCREASE_TEXT);
 		this.increaseX = Constants.GAME_WIDTH - BUFFER - volumeFont.getWidth(INCREASE_TEXT);
 		this.volumeX = increaseX - BUFFER - VOLUME_DIVISOR * (VOLUME_BAR_WIDTH + BUFFER);
 		this.volumeImageX = volumeX - BUFFER - volumeImage.getWidth();
@@ -57,17 +52,11 @@ public class Volume {
 		volumeFont.drawString(increaseX, 0, INCREASE_TEXT);
 	}
 
-	private int calcWidth() {
-		return volumeFont.getWidth("-") + BUFFER + volumeImage.getWidth() + BUFFER + VOLUME_DIVISOR * (VOLUME_BAR_WIDTH + BUFFER) + BUFFER;
-	}
-
 	public void increaseVolume() {
 		musicDirector.increaseVolume();
-		System.out.println("Increased volume to " + musicDirector.getVolume());
 	}
 
 	public void decreaseVolume() {
 		musicDirector.decreaseVolume();
-		System.out.println("Decreased volume to " + musicDirector.getVolume());
 	}
 }

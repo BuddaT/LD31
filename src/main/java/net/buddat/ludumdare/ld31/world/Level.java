@@ -29,8 +29,10 @@ public class Level {
 	private static final int scaledXDistRight = getScaledX(0, SCALE_LIMIT_DIST);
 	private static final int scaledXDistLeft = getScaledX(SCALE_LIMIT_DIST, 0);
 	private static final int LAVA_R = 255;
-	private static final int PROJECTILE_LEFT_B = 255;
-	
+	private static final int PROJECTILE_B = 255;
+	private static final int PROJECTILE_DIRECTION_MASK = 0x3;
+	private static final int PROJECTILE_BEATS_MASK = 0x3C;
+
 	private static final int VIEW_RANGE = 80;
 
 	private final int levelNum;
@@ -141,9 +143,12 @@ public class Level {
 					if (objectPixelColor.getRed() == LAVA_R
 							&& objectPixelColor.getAlpha() > 0) {
 						t.setBeatLava(true);
-					} else if (objectPixelColor.getBlue() == PROJECTILE_LEFT_B
+					} else if (objectPixelColor.getBlue() == PROJECTILE_B
 							&& objectPixelColor.getAlpha() > 0) {
-						ProjectileEmitter emitter = new ProjectileEmitter(x, y, 180, this, projectiles);
+						int direction = objectPixelColor.getGreen() & PROJECTILE_DIRECTION_MASK;
+						int beatsPerEmission = (objectPixelColor.getGreen() & PROJECTILE_BEATS_MASK) >> 2;
+						int distance = 5;
+						ProjectileEmitter emitter = new ProjectileEmitter(x, y, direction * 90, beatsPerEmission, this, distance, projectiles);
 						t.setProjectileEmitter(emitter);
 						projectileEmitters.add(emitter);
 					}

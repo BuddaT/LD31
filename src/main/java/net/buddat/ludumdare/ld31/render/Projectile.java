@@ -21,24 +21,24 @@ public class Projectile {
 	private static final int RADIUS = 2;
 	private static final int SEGMENTS = 6;
 
-	private static final float LIMIT = 200;
 	private static final int POWER = 10;
 
 	private final Vector2f movement;
 	private final Level level;
 	private final Vector2f position;
 
-	private float distanceLeft = LIMIT;
+	private float distanceLeft;
 
 	private boolean hasExpired = false;
 	private Circle collisionBounds;
 
-	public Projectile(int tileX, int tileY, Vector2f direction, Level level, int bpm) {
+	public Projectile(int tileX, int tileY, Vector2f direction, Level level, int limit, int bpm) {
 		position = new Vector2f(
 				tileX * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2,
 				tileY * Constants.TILE_WIDTH + Constants.TILE_WIDTH / 2);
 		Vector2f newDirection = new Vector2f(direction.getTheta());
 		collisionBounds = new Circle(position.getX(), position.getY(), RADIUS);
+		distanceLeft = limit * Constants.TILE_WIDTH;
 		
 		float bps = bpm / 60f;
 		float speedScale = (1.0f / bps) * DEFAULT_SPEED;
