@@ -22,6 +22,7 @@ public class Projectile {
 	private static final int SEGMENTS = 6;
 
 	private static final float LIMIT = 200;
+	private static final int POWER = 10;
 
 	private final Vector2f movement;
 	private final Level level;
@@ -62,6 +63,9 @@ public class Projectile {
 	}
 
 	public void render(Graphics g) {
+		if (hasExpired) {
+			return;
+		}
 		g.setColor(DEFAULT_COLOR);
 		// Tile for current position
 		int tileX = (int) (position.getX() / Constants.TILE_WIDTH);
@@ -79,7 +83,15 @@ public class Projectile {
 		return !hasExpired && collisionBounds.intersects(shape);
 	}
 
+	public void expire() {
+		hasExpired = true;
+	}
+
 	public boolean hasExpired() {
 		return hasExpired;
+	}
+
+	public int getPower() {
+		return POWER;
 	}
 }

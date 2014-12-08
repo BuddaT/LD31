@@ -18,6 +18,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Shape;
 
 public class Level {
 
@@ -238,6 +239,17 @@ public class Level {
 	public boolean isCollidable(int x, int y) {
 		Tile tile = tileMap.get(new Point(x, y));
 		return tile != null && tile.isCollidable();
+	}
+
+	public int getProjectileDamage(Shape shape) {
+		int damage = 0;
+		for (Projectile projectile : projectiles) {
+			if (projectile.collidesWith(shape)) {
+				damage += projectile.getPower();
+				projectile.expire();
+			}
+		}
+		return damage;
 	}
 
 	public boolean isTileHot(int x, int y) {

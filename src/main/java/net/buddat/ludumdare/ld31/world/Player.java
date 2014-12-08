@@ -13,6 +13,7 @@ import net.buddat.ludumdare.ld31.render.PlayerEffect;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.geom.Circle;
 
 /**
  * Player information and behaviour
@@ -29,6 +30,7 @@ public class Player {
 			- DEFAULT_HEIGHT / 2;
 
 	private static final int MAX_HEALTH = 100;
+	private final Circle collisionShape;
 
 	private Level level;
 
@@ -52,10 +54,13 @@ public class Player {
 		this.x = x;
 		this.y = y;
 		this.level = level;
+		this.collisionShape = new Circle((x + 0.5F) * Constants.TILE_WIDTH,
+				(y + 0.5F) * Constants.TILE_WIDTH, DEFAULT_HEIGHT / 2.0F);
 	}
 
 	public void setX(int x) {
 		this.x = x;
+		collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 	}
 
 	public int getX() {
@@ -65,6 +70,7 @@ public class Player {
 	public void setY(int y) {
 		if (!level.isCollidable(x, y)) {
 			this.y = y;
+			collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
 		}
 	}
 
@@ -119,16 +125,21 @@ public class Player {
 			switch (currentDir) {
 				case UP:
 					y--;
+					collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
 					break;
 				case DOWN:
 					y++;
+					collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
 					break;
 				case LEFT:
-					if (x != 0)
+					if (x != 0) {
 						x--;
+						collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
+					}
 					break;
 				case RIGHT:
 					x++;
+					collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 					break;
 				case NONE:
 					break;
@@ -142,6 +153,11 @@ public class Player {
 
 		if (level.isCollidable(x, y)) {
 			setHealth(0);
+		}
+
+		int projectileDamage = level.getProjectileDamage(collisionShape);
+		if (projectileDamage > 0) {
+			setHealth(this.getHealth() - projectileDamage);
 		}
 
 		if (level.isTileHot(x, y)) {
