@@ -150,6 +150,7 @@ public class Level {
 							&& objectPixelColor.getAlpha() > 0) {
 						int direction = objectPixelColor.getGreen() & PROJECTILE_DIRECTION_MASK;
 						int beatsPerEmission = (objectPixelColor.getGreen() & PROJECTILE_BEATS_MASK) >> 2;
+						beatsPerEmission *= 2;
 						int distance = 5;
 
 						ProjectileEmitter emitter;

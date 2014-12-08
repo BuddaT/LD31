@@ -12,7 +12,7 @@ import org.newdawn.slick.geom.Vector2f;
  */
 public class ProjectileEmitter {
 
-	private static final int DEFAULT_TIME = 4;
+	private static final int DEFAULT_TIME = 8;
 	private final int x;
 	private final int y;
 	private final Level level;
