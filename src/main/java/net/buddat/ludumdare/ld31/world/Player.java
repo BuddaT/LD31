@@ -151,7 +151,9 @@ public class Player {
 			}
 		}
 
-		if (level.isCollidable(x, y)) {
+		if (level.isCollidable(x, y)
+				&& ColorDirector.getCurrentPrimary(ColorType.WALL) != ColorDirector
+						.getCurrentPrimary(ColorType.PLAYER)) {
 			setHealth(0);
 		}
 
