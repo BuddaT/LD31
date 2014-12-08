@@ -11,6 +11,7 @@ import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.render.PlayerDeathEffect;
 import net.buddat.ludumdare.ld31.render.PlayerEffect;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Circle;
@@ -194,6 +195,11 @@ public class Player {
 		if (!isDead()) {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
 			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
+					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
+					DEFAULT_HEIGHT, 20);
+
+			g.setColor(Color.white);
+			g.drawOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
 					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 					DEFAULT_HEIGHT, 20);
 		}

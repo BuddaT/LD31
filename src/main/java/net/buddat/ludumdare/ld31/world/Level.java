@@ -148,7 +148,20 @@ public class Level {
 						int direction = objectPixelColor.getGreen() & PROJECTILE_DIRECTION_MASK;
 						int beatsPerEmission = (objectPixelColor.getGreen() & PROJECTILE_BEATS_MASK) >> 2;
 						int distance = 5;
-						ProjectileEmitter emitter = new ProjectileEmitter(x, y, direction * 90, beatsPerEmission, this, distance, projectiles);
+
+						ProjectileEmitter emitter;
+
+						if (objectPixelColor.getRed() > 0) {
+							emitter = new ProjectileEmitter(x, y, 0, 360,
+									objectPixelColor.getRed(),
+									beatsPerEmission, this, distance,
+									projectiles);
+						} else {
+							emitter = new ProjectileEmitter(x, y,
+									direction * 90, beatsPerEmission, this,
+									distance, projectiles);
+						}
+
 						t.setProjectileEmitter(emitter);
 						projectileEmitters.add(emitter);
 					}
