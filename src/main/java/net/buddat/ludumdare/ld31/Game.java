@@ -63,7 +63,14 @@ public class Game extends BasicGame implements MusicDirectorListener {
 			int infoWidth = Title.textFont.getWidth(info);
 			Title.textFont.drawString(Constants.GAME_WIDTH / 2 - infoWidth / 2,
 					50, info, ColorDirector.getTextPrimary());
+
+			String score = "Score: " + player.getAccX();
+			int scoreWidth = Title.textFont.getWidth(score);
+			Title.textFont.drawString(
+					Constants.GAME_WIDTH / 2 - scoreWidth / 2,
+					50 + Title.textFont.getLineHeight(), score);
 		}
+
 		volume.render(g);
 	}
 

@@ -28,7 +28,7 @@ public class Level {
 	private static final int SCALE_LIMIT_DIST = 44;
 	private static final int scaledXDistRight = getScaledX(0, SCALE_LIMIT_DIST);
 	private static final int scaledXDistLeft = getScaledX(SCALE_LIMIT_DIST, 0);
-	private static final int LAVA_R = 255;
+	private static final int LAVA_R = 255, SLOW_WALL_R = 128;
 	private static final int PROJECTILE_B = 255;
 	private static final int PROJECTILE_DIRECTION_MASK = 0x3;
 	private static final int PROJECTILE_BEATS_MASK = 0x3C;
@@ -143,6 +143,9 @@ public class Level {
 					if (objectPixelColor.getRed() == LAVA_R
 							&& objectPixelColor.getAlpha() > 0) {
 						t.setBeatLava(true);
+					} else if (objectPixelColor.getRed() == SLOW_WALL_R
+							&& objectPixelColor.getAlpha() > 0) {
+						t.setSlowWall(true);
 					} else if (objectPixelColor.getBlue() == PROJECTILE_B
 							&& objectPixelColor.getAlpha() > 0) {
 						int direction = objectPixelColor.getGreen() & PROJECTILE_DIRECTION_MASK;
@@ -223,13 +226,15 @@ public class Level {
 	private void drawTile(Tile t, Graphics g, int x, int y, int width,
 			int height) {
 		if (t.isCollidable()) {
-			g.setColor(ColorDirector.getCurrentPrimary(ColorType.WALL));
+			g.setColor(ColorDirector.getCurrentPrimary((t.isSlowWall() ? ColorType.SLOW_WALL
+					: ColorType.WALL)));
 			g.fillRect(x, y, width, height);
 
 			if (x < scaledXDistLeft || x > scaledXDistRight)
 				return;
 
-			g.setColor(ColorDirector.getCurrentSecondary(ColorType.WALL));
+			g.setColor(ColorDirector.getCurrentSecondary((t.isSlowWall() ? ColorType.SLOW_WALL
+					: ColorType.WALL)));
 			g.drawRect(x, y, width, height);
 		}
 	}
@@ -257,6 +262,11 @@ public class Level {
 	public boolean isCollidable(int x, int y) {
 		Tile tile = tileMap.get(new Point(x, y));
 		return tile != null && tile.isCollidable();
+	}
+
+	public boolean isSlowWall(int x, int y) {
+		Tile tile = tileMap.get(new Point(x, y));
+		return tile != null && tile.isSlowWall();
 	}
 
 	public int getProjectileDamage(Shape shape) {
@@ -304,6 +314,7 @@ public class Level {
 		private boolean collidable = false;
 		private boolean beatLava = false;
 		private boolean currentlyHot = false;
+		private boolean slowWall = false;
 
 		private ProjectileEmitter projectileEmitter;
 
@@ -329,6 +340,14 @@ public class Level {
 
 		private void setBeatLava(boolean l) {
 			beatLava = l;
+		}
+
+		private boolean isSlowWall() {
+			return slowWall;
+		}
+
+		private void setSlowWall(boolean w) {
+			slowWall = w;
 		}
 
 		private boolean isCurrentlyHot() {

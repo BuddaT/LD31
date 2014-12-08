@@ -16,9 +16,9 @@ public class ColorDirector {
 	
 	private static final Color TEXT_COLOR_PRIMARY, TEXT_COLOR_SECONDARY;
 
-	public static enum ColorType { PLAYER, WALL, OBJECT, PROJECTILE };
+	public static enum ColorType { PLAYER, WALL, OBJECT, PROJECTILE, SLOW_WALL };
 
-	private static int currentWallColor = 0, currentPlayerColor = 1;
+	private static int currentWallColor = 0, currentPlayerColor = 1, currentSlowWallColor = 0;
 
 	private static int beatCount = 0;
 
@@ -64,10 +64,16 @@ public class ColorDirector {
 	public static void update(int delta) {
 		beatCount++;
 
-		if (beatCount % 2 == 0)
-			getNextPrimary(ColorType.PLAYER);
 		if (beatCount % 4 == 0)
+			getNextPrimary(ColorType.PLAYER);
+		if (beatCount % 4 == 0) {
 			getRandomPrimary(ColorType.WALL);
+
+			if (colorRandom.nextInt(4) == 0)
+				setColor(ColorType.SLOW_WALL, getColor(ColorType.PLAYER));
+			else
+				setColor(ColorType.SLOW_WALL, getColor(ColorType.WALL));
+		}
 	}
 
 	private static Color getRandomPrimary(ColorType c) {
@@ -87,7 +93,7 @@ public class ColorDirector {
 			setColor(c, 0);
 			col = getCurrentPrimary(c);
 		}
-		
+
 		return col;
 	}
 
@@ -96,7 +102,7 @@ public class ColorDirector {
 	}
 
 	public static Color getCurrentSecondary(ColorType c) {
-		if (c == ColorType.WALL)
+		if (c == ColorType.WALL || c == ColorType.SLOW_WALL)
 			if (beatCount % 2 == 0)
 				return getAltSecondary();
 
@@ -135,6 +141,9 @@ public class ColorDirector {
 			case WALL:
 				currentWallColor = newColor;
 				break;
+			case SLOW_WALL:
+				currentSlowWallColor = newColor;
+				break;
 			case OBJECT:
 				break;
 			case PROJECTILE:
@@ -150,6 +159,8 @@ public class ColorDirector {
 				return currentPlayerColor;
 			case WALL:
 				return currentWallColor;
+			case SLOW_WALL:
+				return currentSlowWallColor;
 			case OBJECT:
 				break;
 			case PROJECTILE:

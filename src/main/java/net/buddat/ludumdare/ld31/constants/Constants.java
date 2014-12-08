@@ -10,7 +10,7 @@ public class Constants {
 
 	public static final boolean FULLSCREEN = false;
 
-	public static final boolean DEV_SHOW_FPS = true;
+	public static final boolean DEV_SHOW_FPS = false;
 
 	public static final int TARGET_FPS = 120;
 

@@ -38,6 +38,8 @@ public class Player {
 	private int x;
 	private int y;
 
+	private int accumulativeX = 0;
+
 	private int health = MAX_HEALTH;
 
 	private final ArrayList<PlayerEffect> effects = new ArrayList<PlayerEffect>();
@@ -135,11 +137,13 @@ public class Player {
 				case LEFT:
 					if (x != 0) {
 						x--;
+						accumulativeX--;
 						collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 					}
 					break;
 				case RIGHT:
 					x++;
+					accumulativeX++;
 					collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 					break;
 				case NONE:
@@ -152,10 +156,13 @@ public class Player {
 			}
 		}
 
-		if (level.isCollidable(x, y)
-				&& ColorDirector.getCurrentPrimary(ColorType.WALL) != ColorDirector
-						.getCurrentPrimary(ColorType.PLAYER)) {
-			setHealth(0);
+		if (level.isCollidable(x, y)) {
+			if (ColorDirector
+					.getCurrentPrimary(level.isSlowWall(x, y) ? ColorType.SLOW_WALL
+							: ColorType.WALL) != ColorDirector
+					.getCurrentPrimary(ColorType.PLAYER)) {
+				setHealth(0);
+			}
 		}
 
 		int projectileDamage = level.getProjectileDamage(collisionShape);
@@ -209,16 +216,20 @@ public class Player {
 			effect.render(g);
 		}
 
-		/*
-		 * Draw Healthbar
-		 */
 		String health = "health: " + this.health + " / " + MAX_HEALTH;
 		Title.textFontSmall.drawString(Constants.GAME_WIDTH - 20
 				- Title.textFontSmall.getWidth(health),
 				Constants.GAME_HEIGHT - 40, health);
+
+		String score = "score: " + this.accumulativeX;
+		Title.textFontSmall.drawString(20, Constants.GAME_HEIGHT - 40, score);
 	}
 
 	public boolean isDead() {
 		return getHealth() <= 0;
+	}
+
+	public int getAccX() {
+		return accumulativeX;
 	}
 }
