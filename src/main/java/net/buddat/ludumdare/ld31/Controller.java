@@ -83,6 +83,8 @@ public class Controller {
 				player.setDirection(Direction.LEFT);
 			} else if (input.isKeyDown(Input.KEY_RIGHT)) {
 				player.setDirection(Direction.RIGHT);
+			} else {
+				player.setDirection(Direction.NONE);
 			}
 		}
 

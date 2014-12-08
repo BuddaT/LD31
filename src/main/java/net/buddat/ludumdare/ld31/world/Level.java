@@ -292,15 +292,15 @@ public class Level {
 			tile.setCurrentlyHot(h);
 	}
 
-	public static int getScaledX(int xPosition, int tileX) {
-		int dist = Math.abs(xPosition - tileX);
+	public static int getScaledX(int xPosition, float tileX) {
+		float dist = Math.abs(xPosition - tileX);
 		float pos = dist - TILE_SCALE_FACTOR * dist * (dist - 1) / 2f;
 
 		if (dist > SCALE_LIMIT_DIST)
 			if (xPosition < tileX)
-				return scaledXDistRight + (dist - SCALE_LIMIT_DIST);
+				return scaledXDistRight + ((int) dist - SCALE_LIMIT_DIST);
 			else
-				return scaledXDistLeft - (dist - SCALE_LIMIT_DIST);
+				return scaledXDistLeft - ((int) dist - SCALE_LIMIT_DIST);
 
 		if (xPosition < tileX)
 			return CENTER_TILE_X + (int) (pos * Constants.TILE_WIDTH);

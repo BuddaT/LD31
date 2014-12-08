@@ -31,12 +31,16 @@ public class Player {
 			- DEFAULT_HEIGHT / 2;
 
 	private static final int MAX_HEALTH = 100;
+	private static final float SPEED = 0.0035f;
 	private final Circle collisionShape;
 
 	private Level level;
 
 	private int x;
 	private int y;
+
+	private float xOff = 0f;
+	private float yOff = 0f;
 
 	private int accumulativeX = 0;
 
@@ -49,9 +53,6 @@ public class Player {
 	};
 
 	private Direction currentDir = Direction.NONE;
-	private int dirCooldown = 0;
-
-	private int sinceLast = 0;
 
 	public Player(int x, int y, Level level) {
 		this.x = x;
@@ -63,7 +64,7 @@ public class Player {
 
 	public void setX(int x) {
 		this.x = x;
-		collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
+		updateCollisionShape();
 	}
 
 	public int getX() {
@@ -73,7 +74,7 @@ public class Player {
 	public void setY(int y) {
 		if (!level.isCollidable(x, y)) {
 			this.y = y;
-			collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
+			updateCollisionShape();
 		}
 	}
 
@@ -87,8 +88,8 @@ public class Player {
 
 	public void setHealth(int newHealth) {
 		if (newHealth < health) {
-			int scaleX = Level.getScaledX(level.getXPosition(), x);
-			int width = Level.getScaledX(level.getXPosition(), x + 1) - scaleX;
+			int scaleX = Level.getScaledX(level.getXPosition(), x + xOff);
+			int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - scaleX;
 			float scale = 1.0f / Constants.TILE_WIDTH * width;
 
 			addEffect(new PlayerDamageEffect(getRenderCentreX(),
@@ -111,59 +112,78 @@ public class Player {
 	}
 
 	public void setDirection(Direction d) {
-		if (dirCooldown < 0)
-			currentDir = d;
+		currentDir = d;
 	}
 
 	public void addEffect(PlayerEffect effect) {
 		this.effects.add(effect);
 	}
 
-	public void update(int delta, boolean beat, int bpm) {
-		sinceLast += delta;
-		dirCooldown -= delta;
-		if (sinceLast > 1000 * 60 / (bpm * 2)) {
-			sinceLast = 0;
+	public void updateCollisionShape() {
+		collisionShape.setCenterX((x + xOff + 0.5f) * Constants.TILE_WIDTH);
+		collisionShape.setCenterY((y + yOff + 0.5f) * Constants.TILE_WIDTH);
+	}
 
+	public void update(int delta, boolean beat, int bpm) {
+		if (!isDead()) {
 			switch (currentDir) {
 				case UP:
-					y--;
-					collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
+					yOff -= SPEED * delta;
+					if (yOff < -0.5f) {
+						y--;
+						yOff += 1.0f;
+					}
 					break;
 				case DOWN:
-					y++;
-					collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
+					yOff += SPEED * delta;
+					if (yOff > 0.5f) {
+						y++;
+						yOff -= 1.0f;
+					}
 					break;
 				case LEFT:
 					if (x != 0) {
-						x--;
-						accumulativeX--;
-						collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
+						xOff -= SPEED * delta;
+						if (xOff < -0.5f) {
+							x--;
+							xOff += 1.0f;
+							accumulativeX--;
+						}
 					}
 					break;
 				case RIGHT:
-					x++;
-					accumulativeX++;
-					collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
+					xOff += SPEED * delta;
+					if (xOff > 0.5f) {
+						x++;
+						xOff -= 1.0f;
+						accumulativeX++;
+					}
 					break;
 				case NONE:
 					break;
 			}
+			
+			updateCollisionShape();
+		}
 
-			if (currentDir != Direction.NONE) {
-				currentDir = Direction.NONE;
-				dirCooldown = 1000 * 60 / (bpm * 4);
+		int xStart = x - (xOff < -1.0f + DEFAULT_WIDTH_RATIO ? 1 : 0);
+		int xEnd = x + (xOff > 1.0f - DEFAULT_WIDTH_RATIO ? 1 : 0);
+		int yStart = y - (yOff < -1.0f + DEFAULT_WIDTH_RATIO ? 1 : 0);
+		int yEnd = y + (yOff > 1.0f - DEFAULT_WIDTH_RATIO ? 1 : 0);
+
+		for (int i = xStart; i <= xEnd; i++) {
+			for (int j = yStart; j <= yEnd; j++) {
+				if (level.isCollidable(i, j)) {
+					if (ColorDirector
+							.getCurrentPrimary(level.isSlowWall(i, j) ? ColorType.SLOW_WALL
+									: ColorType.WALL) != ColorDirector
+							.getCurrentPrimary(ColorType.PLAYER)) {
+						setHealth(0);
+					}
+				}
 			}
 		}
 
-		if (level.isCollidable(x, y)) {
-			if (ColorDirector
-					.getCurrentPrimary(level.isSlowWall(x, y) ? ColorType.SLOW_WALL
-							: ColorType.WALL) != ColorDirector
-					.getCurrentPrimary(ColorType.PLAYER)) {
-				setHealth(0);
-			}
-		}
 
 		int projectileDamage = level.getProjectileDamage(collisionShape);
 		if (projectileDamage > 0) {
@@ -185,28 +205,30 @@ public class Player {
 	}
 
 	public int getRenderCentreX() {
-		int xPos = Level.getScaledX(level.getXPosition(), x);
-		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
+		int xPos = Level.getScaledX(level.getXPosition(), x + xOff);
+		int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - xPos;
 
 		return xPos + width / 2;
 	}
 
 	public int getRenderCentreY() {
-		return Y_OFFSET + y * Constants.TILE_WIDTH + (DEFAULT_HEIGHT + 1) / 2;
+		return (int) (Y_OFFSET + (y + yOff) * Constants.TILE_WIDTH + (DEFAULT_HEIGHT + 1) / 2f);
 	}
 
 	public void render(GameContainer gc, Graphics g) {
-		int xPos = Level.getScaledX(level.getXPosition(), x);
-		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
+		int xPos = Level.getScaledX(level.getXPosition(), x + xOff);
+		int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - xPos;
 
 		if (!isDead()) {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
-			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
+			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET
+					+ (y + yOff)
 					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 					DEFAULT_HEIGHT, 20);
 
 			g.setColor(Color.white);
-			g.drawOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
+			g.drawOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET
+					+ (y + yOff)
 					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 					DEFAULT_HEIGHT, 20);
 		}
