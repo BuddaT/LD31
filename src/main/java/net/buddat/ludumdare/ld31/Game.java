@@ -106,7 +106,7 @@ public class Game extends BasicGame implements MusicDirectorListener {
 
 		if (player.getX() > currentLevel.getWidth()) {
 			nextLevel(true);
-		} else {
+		} else if (title.isMovedOut() && onBeat) {
 			music.ratchetSlice(currentLevel.getXPosition(), currentLevel.getWidth());
 		}
 
