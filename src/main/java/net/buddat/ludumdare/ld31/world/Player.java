@@ -36,8 +36,9 @@ public class Player {
 	private static final int MAX_HEALTH = 100;
 	private static final int SPEED = 4;
 	private final Circle collisionShape;
-	private Sound deathSound;
 	private Sound hurtSound;
+	private Sound deathSound;
+	private Sound beatSound;
 
 	private Level level;
 
@@ -72,6 +73,7 @@ public class Player {
 		try {
 			this.hurtSound = new Sound(Constants.SOUNDS_DIR + "hurt.ogg");
 			this.deathSound = new Sound(Constants.SOUNDS_DIR + "death.ogg");
+			this.beatSound = new Sound(Constants.SOUNDS_DIR + "beat.ogg");
 		} catch (SlickException e) {
 			System.err.println("Can't load hurt sound");
 		}
@@ -281,6 +283,9 @@ public class Player {
 
 			addEffect(new PlayerScoreEffect(getRenderCentreX(),
 					getRenderCentreY(), scale));
+			if (beatSound != null) {
+				beatSound.play();
+			}
 		}
 
 		lastScore = 0;

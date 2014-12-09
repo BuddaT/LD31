@@ -221,3 +221,6 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 /upload_data
+
+# Exclude wav files, they are intermediate working files only
+*.wav
