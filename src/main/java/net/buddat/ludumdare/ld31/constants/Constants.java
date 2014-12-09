@@ -22,7 +22,7 @@ public class Constants {
 	public static final String LEVEL_COLLISION_LAYER = "_0001_collision";
 	public static final String LEVEL_OBJECT_LAYER = "_0000_objects";
 
-	public static final int MAX_LEVEL = 4;
+	public static final int MAX_LEVEL = 6;
 
 	public static final String SOUNDS_DIR = "sounds/";
 
