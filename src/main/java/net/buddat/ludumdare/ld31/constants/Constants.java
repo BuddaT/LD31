@@ -24,4 +24,6 @@ public class Constants {
 
 	public static final int MAX_LEVEL = 4;
 
+	public static final String SOUNDS_DIR = "sounds/";
+
 }

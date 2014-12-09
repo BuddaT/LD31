@@ -191,14 +191,14 @@ public class MusicDirector implements MusicListener, Runnable {
 					listener.onTrackChanged(oldTrack, oldPosition, oldBpm, currentMusicDetails.track, BEATS_PER_MINUTE.get(currentMusicDetails.track));
 				} else if (action.type == QueueActionType.NEXT) {
 					// On the next loop notification,
-					if (goToNext) {
-						// Next slice already queued for playing
-					} else if (SLICES.containsKey(currentMusicDetails.track)) {
-						System.out.println("Next slice queued for playing, waiting for end of current slice");
-						goToNext = true;
-					} else {
-						System.err.println("Can't take next slice, track " + currentMusicDetails.track + " isn't sliced");
-					}
+					if (!goToNext) {
+						if (SLICES.containsKey(currentMusicDetails.track)) {
+							System.out.println("Next slice queued for playing, waiting for end of current slice");
+							goToNext = true;
+						} else {
+							System.err.println("Can't take next slice, track " + currentMusicDetails.track + " isn't sliced");
+						}
+					} // Else next slice already queued for playing
 				}
 				action = queue.take();
 			}

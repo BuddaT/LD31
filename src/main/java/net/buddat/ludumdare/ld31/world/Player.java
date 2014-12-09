@@ -11,9 +11,7 @@ import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.render.PlayerDeathEffect;
 import net.buddat.ludumdare.ld31.render.PlayerEffect;
 
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
+import org.newdawn.slick.*;
 import org.newdawn.slick.geom.Circle;
 
 /**
@@ -33,6 +31,8 @@ public class Player {
 	private static final int MAX_HEALTH = 100;
 	private static final float SPEED = 0.0035f;
 	private final Circle collisionShape;
+	private Sound deathSound;
+	private Sound hurtSound;
 
 	private Level level;
 
@@ -60,6 +60,12 @@ public class Player {
 		this.level = level;
 		this.collisionShape = new Circle((x + 0.5F) * Constants.TILE_WIDTH,
 				(y + 0.5F) * Constants.TILE_WIDTH, DEFAULT_HEIGHT / 2.0F);
+		try {
+			this.hurtSound = new Sound(Constants.SOUNDS_DIR + "hurt.ogg");
+			this.deathSound = new Sound(Constants.SOUNDS_DIR + "death.ogg");
+		} catch (SlickException e) {
+			System.err.println("Can't load hurt sound");
+		}
 	}
 
 	public void setX(int x) {
@@ -86,6 +92,17 @@ public class Player {
 		return health;
 	}
 
+	private void playHurtSound() {
+		if (hurtSound != null) {
+			hurtSound.play();
+		}
+	}
+
+	private void playDeathSound() {
+		if (deathSound != null) {
+			deathSound.play();
+		}
+	}
 	public void setHealth(int newHealth) {
 		if (newHealth < health) {
 			int scaleX = Level.getScaledX(level.getXPosition(), x + xOff);
@@ -95,9 +112,11 @@ public class Player {
 			addEffect(new PlayerDamageEffect(getRenderCentreX(),
 					getRenderCentreY(), scale));
 
-			if (newHealth <= 0)
+			if (newHealth <= 0) {
 				addEffect(new PlayerDeathEffect(getRenderCentreX(),
 						getRenderCentreY(), scale));
+				playDeathSound();
+			}
 		}
 
 		health = newHealth;
@@ -184,13 +203,15 @@ public class Player {
 			}
 		}
 
-
+		boolean tookDamage = false;
 		int projectileDamage = level.getProjectileDamage(collisionShape);
 		if (projectileDamage > 0) {
 			setHealth(this.getHealth() - projectileDamage);
+			tookDamage = true;
 		}
 
 		if (level.isTileHot(x, y)) {
+			tookDamage = true;
 			setHealth(getHealth() - 20);
 			level.setTileHot(x, y, false);
 		}
@@ -201,6 +222,9 @@ public class Player {
 			if (effect.hasExpired()) {
 				iter.remove();
 			}
+		}
+		if (tookDamage && !isDead()) {
+			playHurtSound();
 		}
 	}
 
