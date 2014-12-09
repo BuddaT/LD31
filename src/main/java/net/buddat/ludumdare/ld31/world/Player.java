@@ -10,6 +10,7 @@ import net.buddat.ludumdare.ld31.constants.Constants;
 import net.buddat.ludumdare.ld31.render.PlayerDamageEffect;
 import net.buddat.ludumdare.ld31.render.PlayerDeathEffect;
 import net.buddat.ludumdare.ld31.render.PlayerEffect;
+import net.buddat.ludumdare.ld31.render.PlayerScoreEffect;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -31,7 +32,7 @@ public class Player {
 			- DEFAULT_HEIGHT / 2;
 
 	private static final int MAX_HEALTH = 100;
-	private static final float SPEED = 0.0035f;
+	private static final int SPEED = 4;
 	private final Circle collisionShape;
 
 	private Level level;
@@ -39,10 +40,11 @@ public class Player {
 	private int x;
 	private int y;
 
-	private float xOff = 0f;
-	private float yOff = 0f;
+	private final float xOff = 0f;
+	private final float yOff = 0f;
 
 	private int accumulativeX = 0;
+	private int lastScore = 0;
 
 	private int health = MAX_HEALTH;
 
@@ -53,6 +55,9 @@ public class Player {
 	};
 
 	private Direction currentDir = Direction.NONE;
+	private int dirCooldown = 0;
+
+	private int sinceLast = 0;
 
 	public Player(int x, int y, Level level) {
 		this.x = x;
@@ -64,7 +69,7 @@ public class Player {
 
 	public void setX(int x) {
 		this.x = x;
-		updateCollisionShape();
+		collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 	}
 
 	public int getX() {
@@ -74,7 +79,7 @@ public class Player {
 	public void setY(int y) {
 		if (!level.isCollidable(x, y)) {
 			this.y = y;
-			updateCollisionShape();
+			collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
 		}
 	}
 
@@ -88,8 +93,8 @@ public class Player {
 
 	public void setHealth(int newHealth) {
 		if (newHealth < health) {
-			int scaleX = Level.getScaledX(level.getXPosition(), x + xOff);
-			int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - scaleX;
+			int scaleX = Level.getScaledX(level.getXPosition(), x);
+			int width = Level.getScaledX(level.getXPosition(), x + 1) - scaleX;
 			float scale = 1.0f / Constants.TILE_WIDTH * width;
 
 			addEffect(new PlayerDamageEffect(getRenderCentreX(),
@@ -112,78 +117,57 @@ public class Player {
 	}
 
 	public void setDirection(Direction d) {
-		currentDir = d;
+		if (dirCooldown < 0)
+			currentDir = d;
 	}
 
 	public void addEffect(PlayerEffect effect) {
 		this.effects.add(effect);
 	}
 
-	public void updateCollisionShape() {
-		collisionShape.setCenterX((x + xOff + 0.5f) * Constants.TILE_WIDTH);
-		collisionShape.setCenterY((y + yOff + 0.5f) * Constants.TILE_WIDTH);
-	}
-
 	public void update(int delta, boolean beat, int bpm) {
-		if (!isDead()) {
-			switch (currentDir) {
-				case UP:
-					yOff -= SPEED * delta;
-					if (yOff < -0.5f) {
-						y--;
-						yOff += 1.0f;
-					}
-					break;
-				case DOWN:
-					yOff += SPEED * delta;
-					if (yOff > 0.5f) {
-						y++;
-						yOff -= 1.0f;
-					}
-					break;
-				case LEFT:
-					if (x != 0) {
-						xOff -= SPEED * delta;
-						if (xOff < -0.5f) {
-							x--;
-							xOff += 1.0f;
-							accumulativeX--;
-						}
-					}
-					break;
-				case RIGHT:
-					xOff += SPEED * delta;
-					if (xOff > 0.5f) {
-						x++;
-						xOff -= 1.0f;
-						accumulativeX++;
-					}
-					break;
-				case NONE:
-					break;
-			}
-			
-			updateCollisionShape();
-		}
+		sinceLast += delta;
+		dirCooldown -= delta;
+		lastScore += delta;
 
-		int xStart = x - (xOff < -1.0f + DEFAULT_WIDTH_RATIO ? 1 : 0);
-		int xEnd = x + (xOff > 1.0f - DEFAULT_WIDTH_RATIO ? 1 : 0);
-		int yStart = y - (yOff < -1.0f + DEFAULT_WIDTH_RATIO ? 1 : 0);
-		int yEnd = y + (yOff > 1.0f - DEFAULT_WIDTH_RATIO ? 1 : 0);
-
-		for (int i = xStart; i <= xEnd; i++) {
-			for (int j = yStart; j <= yEnd; j++) {
-				if (level.isCollidable(i, j)) {
-					if (ColorDirector
-							.getCurrentPrimary(level.isSlowWall(i, j) ? ColorType.SLOW_WALL
-									: ColorType.WALL) != ColorDirector
-							.getCurrentPrimary(ColorType.PLAYER)) {
-						setHealth(0);
-					}
+		switch (currentDir) {
+			case UP:
+				y--;
+				collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
+				break;
+			case DOWN:
+				y++;
+				collisionShape.setCenterY((y + 0.5F) * Constants.TILE_WIDTH);
+				break;
+			case LEFT:
+				if (x != 0) {
+					x--;
+					accumulativeX--;
+					collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
 				}
-			}
+				break;
+			case RIGHT:
+				x++;
+				accumulativeX++;
+				collisionShape.setCenterX((x + 0.5F) * Constants.TILE_WIDTH);
+				break;
+			case NONE:
+				break;
 		}
 
+		if (currentDir != Direction.NONE) {
+			currentDir = Direction.NONE;
+			dirCooldown = 1000 * 60 / (bpm * SPEED);
+		}
+
+		if (level.isCollidable(x, y)) {
+			if (ColorDirector
+					.getCurrentPrimary(level.isSlowWall(x, y) ? ColorType.SLOW_WALL
+							: ColorType.WALL) != ColorDirector
+					.getCurrentPrimary(ColorType.PLAYER)) {
+				setHealth(0);
+			}
+		}
 
 		int projectileDamage = level.getProjectileDamage(collisionShape);
 		if (projectileDamage > 0) {
@@ -205,30 +189,28 @@ public class Player {
 	}
 
 	public int getRenderCentreX() {
-		int xPos = Level.getScaledX(level.getXPosition(), x + xOff);
-		int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - xPos;
+		int xPos = Level.getScaledX(level.getXPosition(), x);
+		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
 
 		return xPos + width / 2;
 	}
 
 	public int getRenderCentreY() {
-		return (int) (Y_OFFSET + (y + yOff) * Constants.TILE_WIDTH + (DEFAULT_HEIGHT + 1) / 2f);
+		return Y_OFFSET + y * Constants.TILE_WIDTH + (DEFAULT_HEIGHT + 1) / 2;
 	}
 
 	public void render(GameContainer gc, Graphics g) {
-		int xPos = Level.getScaledX(level.getXPosition(), x + xOff);
-		int width = Level.getScaledX(level.getXPosition(), x + xOff + 1) - xPos;
+		int xPos = Level.getScaledX(level.getXPosition(), x);
+		int width = Level.getScaledX(level.getXPosition(), x + 1) - xPos;
 
 		if (!isDead()) {
 			g.setColor(ColorDirector.getCurrentPrimary(ColorType.PLAYER));
-			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET
-					+ (y + yOff)
+			g.fillOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
 					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 					DEFAULT_HEIGHT, 20);
 
 			g.setColor(Color.white);
-			g.drawOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET
-					+ (y + yOff)
+			g.drawOval(xPos + X_OFFSET * DEFAULT_WIDTH_RATIO, Y_OFFSET + y
 					* Constants.TILE_WIDTH, width * DEFAULT_WIDTH_RATIO,
 					DEFAULT_HEIGHT, 20);
 		}
@@ -253,5 +235,25 @@ public class Player {
 
 	public int getAccX() {
 		return accumulativeX;
+	}
+
+	public void addScore(boolean onBeat, int bpm) {
+		if (lastScore < 1000 * 60 / bpm / 1.5f) {
+			lastScore = 0;
+			return;
+		}
+
+		if (onBeat) {
+			int scaleX = Level.getScaledX(level.getXPosition(), x);
+			int width = Level.getScaledX(level.getXPosition(), x + 1) - scaleX;
+			float scale = 1.0f / Constants.TILE_WIDTH * width;
+
+			accumulativeX += 5;
+
+			addEffect(new PlayerScoreEffect(getRenderCentreX(),
+					getRenderCentreY(), scale));
+		}
+
+		lastScore = 0;
 	}
 }

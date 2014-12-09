@@ -74,17 +74,22 @@ public class Controller {
 			wasSpacePressed = false;
 		}
 		if (!player.isDead()) {
-			if (input.isKeyDown(Input.KEY_UP)
-					|| input.isKeyPressed(Input.KEY_UP)) {
+			float position = musicDirector.getPosition();
+			int bpm = musicDirector.getBpm();
+			boolean onBeat = beatCalculator.isOnBeat(position, bpm);
+
+			if (input.isKeyPressed(Input.KEY_UP)) {
+				player.addScore(onBeat, bpm);
 				player.setDirection(Direction.UP);
-			} else if (input.isKeyDown(Input.KEY_DOWN)) {
+			} else if (input.isKeyPressed(Input.KEY_DOWN)) {
+				player.addScore(onBeat, bpm);
 				player.setDirection(Direction.DOWN);
-			} else if (input.isKeyDown(Input.KEY_LEFT)) {
+			} else if (input.isKeyPressed(Input.KEY_LEFT)) {
+				player.addScore(onBeat, bpm);
 				player.setDirection(Direction.LEFT);
-			} else if (input.isKeyDown(Input.KEY_RIGHT)) {
+			} else if (input.isKeyPressed(Input.KEY_RIGHT)) {
+				player.addScore(onBeat, bpm);
 				player.setDirection(Direction.RIGHT);
-			} else {
-				player.setDirection(Direction.NONE);
 			}
 		}
 
